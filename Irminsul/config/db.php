@@ -1,27 +1,38 @@
 <?php
-// Start a PHP session on every page so we remember who is logged in
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Database connection settings
-$host = 'localhost';
-$port = '5432';
-$dbname = 'lms';
-$user = 'postgres';
-$password = 'aritra2005'; // <-- CHANGE THIS TO YOUR PGADMIN PASSWORD
+// Read key=value pairs from local .env file
+$envPath = __DIR__ . '/../.env';
+if (file_exists($envPath)) {
+    foreach (file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#')) continue;
+        [$key, $val] = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($val);
+    }
+}
 
-// DSN (Data Source Name) tells PDO we are using PostgreSQL (pgsql)
-$dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
+$host    = $_ENV['DB_HOST'] ?? 'localhost';
+$port    = $_ENV['DB_PORT'] ?? '5432';
+$dbname  = $_ENV['DB_NAME'] ?? 'neondb';
+$user    = $_ENV['DB_USER'] ?? 'neondb_owner';
+$pass    = $_ENV['DB_PASS'] ?? '';
+$sslmode = $_ENV['DB_SSLMODE'] ?? 'require';
+
+// Extract the Endpoint ID (the 'ep-...' part before the first dot in DB_HOST)
+$endpointId = explode('.', $host)[0];
+
+// Pass options=endpoint=<endpointId> so XAMPP's libpq works with Neon
+$dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=$sslmode;options=endpoint=$endpointId";
 
 try {
-    // Create the PDO connection object
-    $pdo = new PDO($dsn, $user, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, // Show clear errors if SQL fails
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC // Return rows as clean key-value arrays
+    $pdo = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
     ]);
 } catch (PDOException $e) {
-    // Stop safely and display an error message if the connection fails
     die("Database connection failed: " . $e->getMessage());
 }
 ?>
