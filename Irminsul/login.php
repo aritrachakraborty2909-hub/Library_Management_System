@@ -22,9 +22,14 @@ if (isset($_GET['registered'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $result = loginMember($pdo, $_POST['email'] ?? '', $_POST['password'] ?? '');
     if ($result['success']) {
-        header("Location: index.php");
+        if ($_SESSION['role'] === 'Librarian') {
+            header("Location: librarian_dashboard.php");
+        } else {
+            header("Location: index.php");
+        }
         exit;
-    } else {
+    }
+    else {
         $error = $result['message'];
     }
 }
