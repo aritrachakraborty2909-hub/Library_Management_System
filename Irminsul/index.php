@@ -55,7 +55,7 @@ $books = searchBooks($pdo, $searchQuery);
             <span style="margin-left: 20px;">Hello, <strong><?= htmlspecialchars($_SESSION['full_name']) ?></strong> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
             <a href="index.php?action=logout">Logout</a>
         <?php else: ?>
-            <a href="auth.php">Log In / Sign Up</a>
+            <a href="login.php">Log In / Sign Up</a>
         <?php endif; ?>
     </div>
 </nav>

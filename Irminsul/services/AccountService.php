@@ -52,4 +52,24 @@ function loginMember(PDO $pdo, string $email, string $password): array {
 
     return ['success' => false, 'message' => 'Invalid email or password.'];
 }
+// Step 1 of Recovery: Check if the email exists in D1 Member Store
+function verifyMemberEmail(PDO $pdo, string $email): ?array {
+    $stmt = $pdo->prepare("SELECT member_id, full_name, email FROM members WHERE email = :email LIMIT 1");
+    $stmt->execute([':email' => trim($email)]);
+    $user = $stmt->fetch();
+
+    // Returns the user's array if found, or null if no such user exists
+    return $user ?: null;
+}
+
+// Step 2 of Recovery: Update password hash in D1 Member Store (Module 0.1.4.3 Save Account Details)
+function updateMemberPassword(PDO $pdo, int $memberId, string $newPassword): bool {
+    $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
+
+    $stmt = $pdo->prepare("UPDATE members SET password_hash = :hash WHERE member_id = :id");
+    return $stmt->execute([
+        ':hash' => $newHash,
+        ':id'   => $memberId
+    ]);
+}
 ?>

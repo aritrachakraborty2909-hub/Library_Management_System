@@ -9,7 +9,7 @@ $host = 'localhost';
 $port = '5432';
 $dbname = 'lms';
 $user = 'postgres';
-$password = 'saikat123'; // <-- CHANGE THIS TO YOUR PGADMIN PASSWORD
+$password = 'aritra2005'; // <-- CHANGE THIS TO YOUR PGADMIN PASSWORD
 
 // DSN (Data Source Name) tells PDO we are using PostgreSQL (pgsql)
 $dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
