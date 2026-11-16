@@ -37,14 +37,14 @@ $books = searchBooks($pdo, $searchQuery);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Open Library | Library Management System</title>
+    <title>The Reading Room | Library Management System</title>
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
 <!-- Top Navigation -->
 <nav class="navbar">
-    <div class="brand">Open Library</div>
+    <div class="brand">THE READING ROOM</div>
     <div>
         <a href="index.php">Browse Books</a>
         <?php if (isset($_SESSION['member_id'])): ?>
@@ -62,7 +62,7 @@ $books = searchBooks($pdo, $searchQuery);
 
 <!-- Hero Search Section -->
 <section class="hero">
-    <h1>Welcome to Open Library</h1>
+    <h1>Welcome to The Reading Room</h1>
     <p>Search millions of records, check shelf availability, and borrow books.</p>
     
     <form class="search-form" method="GET" action="index.php">
