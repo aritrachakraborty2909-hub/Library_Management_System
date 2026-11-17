@@ -1,8 +1,6 @@
 <?php
-// Load database connection, Catalogue service (0.2), and Circulation service (0.3)
 require_once 'config/db.php';
 require_once 'services/CatalogueService.php';
-require_once 'services/CirculationService.php';
 
 // Handle Logout action
 if (isset($_GET['action']) && $_GET['action'] === 'logout') {
@@ -11,32 +9,20 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
     exit;
 }
 
-$feedback = '';
-$feedbackSuccess = false;
+// Read search keyword from URL (?q=...)
+$searchQuery = trim($_GET['q'] ?? '');
 
-// Handle Borrow Book button click (Module 0.3.1)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'borrow') {
-    if (!isset($_SESSION['member_id'])) {
-        header("Location: auth.php");
-        exit;
-    }
-
-    $bookId = (int)($_POST['book_id'] ?? 0);
-    $result = borrowBook($pdo, (int)$_SESSION['member_id'], $bookId);
-    $feedback = $result['message'];
-    $feedbackSuccess = $result['success'];
-}
-
-// Get search keyword from URL (e.g., index.php?q=Dune)
-$searchQuery = $_GET['q'] ?? '';
-
-// Call Module 0.2.1 (Search Book)
+// Call Module 0.2.1 (Search Book across Title, Author, ISBN, Genre, Publisher, Index, Year)
 $books = searchBooks($pdo, $searchQuery);
+
+$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
+$isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Reading Room | Library Management System</title>
     <link rel="stylesheet" href="assets/style.css">
 </head>
@@ -49,13 +35,17 @@ $books = searchBooks($pdo, $searchQuery);
         <a href="index.php">Browse Books</a>
         <?php if (isset($_SESSION['member_id'])): ?>
             <a href="my_loans.php">My Loans</a>
-            <?php if (in_array($_SESSION['role'] ?? '', ['Librarian', 'Cataloger', 'System Manager'], true)): ?>
-                <a href="admin_dashboard.php" style="color: #ffd166; font-weight: bold;">Staff Dashboard</a>
-            <?php endif; ?>
-            <span style="margin-left: 20px;">Hello, <strong><?= htmlspecialchars($_SESSION['full_name']) ?></strong> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
+        <?php endif; ?>
+        <?php if ($isStaff): ?>
+            <a href="admin_dashboard.php" style="color:#facc15;">Staff Dashboard</a>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['member_id'])): ?>
+            <span style="margin-left:20px;">Hello, <strong><?= htmlspecialchars($_SESSION['full_name']) ?></strong> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
             <a href="index.php?action=logout">Logout</a>
         <?php else: ?>
-            <a href="login.php">Log In / Sign Up</a>
+            <a href="login.php">Log In</a>
+            <a href="register.php" class="btn" style="margin-left:15px;">Sign Up</a>
         <?php endif; ?>
     </div>
 </nav>
@@ -66,34 +56,46 @@ $books = searchBooks($pdo, $searchQuery);
     <p>Search millions of records, check shelf availability, and borrow books.</p>
     
     <form class="search-form" method="GET" action="index.php">
-        <input type="text" name="q" placeholder="Search by Title, Author, ISBN, or Subject..." value="<?= htmlspecialchars($searchQuery) ?>">
+        <input type="text" 
+               id="catalog-search-input"
+               name="q" 
+               placeholder="Search by Title, Author, ISBN, Genre, Publisher, or Book Index..." 
+               value="<?= htmlspecialchars($searchQuery) ?>">
         <button type="submit" class="btn">Search</button>
+        <?php if ($searchQuery !== ''): ?>
+            <a href="index.php" class="btn" style="background:#64748b;">Clear</a>
+        <?php endif; ?>
     </form>
 </section>
 
 <!-- Main Book Catalog Grid -->
 <main class="container">
+    <h2 id="shelf-heading">
+        <?= $searchQuery !== '' 
+            ? "Search Results for '" . htmlspecialchars($searchQuery) . "' (" . count($books) . " found)" 
+            : "Trending & Available Books" ?>
+    </h2>
 
-    <!-- Borrow Status Banner -->
-    <?php if ($feedback): ?>
-        <div style="padding: 12px 18px; margin-bottom: 20px; border-radius: 5px; font-weight: bold;
-                    background: <?= $feedbackSuccess ? '#d4edda' : '#f8d7da' ?>;
-                    color: <?= $feedbackSuccess ? '#155724' : '#721c24' ?>;">
-            <?= htmlspecialchars($feedback) ?>
-            <?php if ($feedbackSuccess): ?>
-                &mdash; <a href="my_loans.php" style="color: inherit; text-decoration: underline;">View My Loans</a>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
+    <p id="no-match-msg" style="margin-top:20px; display:<?= empty($books) ? 'block' : 'none' ?>;">
+        No books matched your search. Try another title, author, ISBN, or genre.
+    </p>
 
-    <h2><?= $searchQuery ? "Search Results for '" . htmlspecialchars($searchQuery) . "'" : "Trending & Available Books" ?></h2>
-
-    <?php if (empty($books)): ?>
-        <p style="margin-top:20px;">No books matched your search.</p>
-    <?php else: ?>
-        <div class="book-grid">
+    <?php if (!empty($books)): ?>
+        <div class="book-grid" id="book-grid">
             <?php foreach ($books as $book): ?>
-                <div class="book-card">
+                <?php
+                    // Combine all searchable attributes into a lowercase data attribute for instant live filtering
+                    $searchBlob = strtolower(
+                        ($book['title'] ?? '') . ' ' .
+                        ($book['author'] ?? '') . ' ' .
+                        ($book['isbn'] ?? '') . ' ' .
+                        ($book['genre_category'] ?? '') . ' ' .
+                        ($book['publisher'] ?? '') . ' ' .
+                        ($book['book_index'] ?? '') . ' ' .
+                        ($book['publication_year'] ?? '')
+                    );
+                ?>
+                <div class="book-card" data-search="<?= htmlspecialchars($searchBlob) ?>">
                     <div>
                         <img class="book-cover" 
                              src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($book['isbn']) ?>-M.jpg" 
@@ -101,34 +103,58 @@ $books = searchBooks($pdo, $searchQuery);
                         
                         <h3><?= htmlspecialchars($book['title']) ?></h3>
                         <p style="color:#666; font-size:0.9rem;">by <?= htmlspecialchars($book['author']) ?></p>
-                        <p style="font-size:0.8rem; margin-top:4px;">Rack: <strong><?= htmlspecialchars($book['rack_location']) ?></strong></p>
+                        <p style="font-size:0.8rem; margin-top:4px; color:#555;">
+                            <?= htmlspecialchars($book['genre_category']) ?>
+                            <?= !empty($book['publication_year']) ? ' &bull; ' . (int)$book['publication_year'] : '' ?>
+                        </p>
+                        <p style="font-size:0.8rem; margin-top:4px;">
+                            Book Index: <strong><?= htmlspecialchars($book['book_index']) ?></strong>
+                            &nbsp;|&nbsp; ISBN: <?= htmlspecialchars($book['isbn']) ?>
+                        </p>
 
                         <?php if ($book['available_copies'] > 0): ?>
-                            <span class="badge available">Available (<?= $book['available_copies'] ?>/<?= $book['total_copies'] ?>)</span>
+                            <span class="badge available">Available (<?= (int)$book['available_copies'] ?>/<?= (int)$book['total_copies'] ?>)</span>
                         <?php else: ?>
                             <span class="badge unavailable">Checked Out</span>
                         <?php endif; ?>
                     </div>
 
-                    <!-- Borrow Button (Connected to Module 0.3.1) -->
-                    <?php if (isset($_SESSION['member_id'])): ?>
-                        <?php if ($book['available_copies'] > 0): ?>
-                            <form method="POST" action="index.php<?= $searchQuery ? '?q=' . urlencode($searchQuery) : '' ?>" style="margin-top:10px;">
-                                <input type="hidden" name="action" value="borrow">
-                                <input type="hidden" name="book_id" value="<?= $book['book_id'] ?>">
-                                <button type="submit" class="btn" style="width:100%;">Borrow Book</button>
-                            </form>
-                        <?php else: ?>
-                            <button class="btn" style="width:100%; margin-top:10px; background:#aaa; cursor:not-allowed;" disabled>Out of Stock</button>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <a href="auth.php" class="btn" style="width:100%; text-align:center; margin-top:10px; background:#555;">Log in to Borrow</a>
+                    <?php if (isset($_SESSION['member_id']) && $book['available_copies'] > 0): ?>
+                        <form method="POST" action="borrow_action.php" style="margin-top:10px;">
+                            <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
+                            <button type="submit" class="btn" style="width:100%;">Borrow Book</button>
+                        </form>
+                    <?php elseif (!isset($_SESSION['member_id'])): ?>
+                        <a href="login.php" class="btn" style="width:100%; text-align:center; margin-top:10px; background:#555;">Log in to Borrow</a>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
 </main>
+
+<script>
+  // Instant live filtering as the user types (in addition to server-side Search button submit)
+  const searchInput = document.getElementById('catalog-search-input');
+  const bookCards   = Array.from(document.querySelectorAll('.book-card'));
+  const noMatchMsg  = document.getElementById('no-match-msg');
+
+  if (searchInput && bookCards.length > 0) {
+    searchInput.addEventListener('input', () => {
+      const words = searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      let visibleCount = 0;
+
+      bookCards.forEach(card => {
+        const haystack = card.dataset.search || '';
+        const isMatch = words.every(word => haystack.includes(word));
+        card.style.display = isMatch ? 'flex' : 'none';
+        if (isMatch) visibleCount++;
+      });
+
+      noMatchMsg.style.display = (visibleCount === 0) ? 'block' : 'none';
+    });
+  }
+</script>
 
 </body>
 </html>
