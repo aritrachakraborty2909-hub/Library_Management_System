@@ -187,242 +187,7 @@ $activeLoans = $pdo->query("
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Workbench — The Reading Room</title>
-    <style>
-        :root {
-            --parchment-bg: #f3e7cb;
-            --parchment-card: #faf3e3;
-            --parchment-border: #d8bd89;
-            --espresso-dark: #65452f;
-            --espresso-hover: #4e3423;
-            --ink-text: #2c1e14;
-            --muted-ink: #5c4636;
-            --success-green: #2d6a4f;
-            --success-bg: #e3f3eb;
-            --danger-red: #9e2a2b;
-            --danger-bg: #f9e2e2;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            background-color: var(--parchment-bg);
-            color: var(--ink-text);
-            font-family: 'Georgia', 'Times New Roman', serif;
-            margin: 0;
-        }
-
-        .top-nav {
-            background-color: var(--espresso-dark);
-            color: #fffaf0;
-            padding: 14px 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid var(--parchment-border);
-        }
-
-        .brand {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #fffaf0;
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 16px;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.9rem;
-        }
-
-        .nav-links a {
-            color: #f3e7cb;
-            text-decoration: none;
-            padding: 6px 10px;
-            border-radius: 4px;
-        }
-
-        .nav-links a:hover, .nav-links a.active {
-            background-color: rgba(255, 255, 255, 0.15);
-            color: #fff;
-        }
-
-        .container {
-            max-width: 1240px;
-            margin: 26px auto;
-            padding: 0 20px 60px;
-        }
-
-        .alert {
-            padding: 12px 18px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            font-family: system-ui, sans-serif;
-            font-size: 0.92rem;
-            font-weight: 500;
-            border: 1px solid;
-        }
-        .alert-success { background: var(--success-bg); color: var(--success-green); border-color: #95d5b2; }
-        .alert-error { background: var(--danger-bg); color: var(--danger-red); border-color: #e5989b; }
-
-        .card {
-            background-color: var(--parchment-card);
-            border: 1px solid var(--parchment-border);
-            border-radius: 8px;
-            padding: 22px;
-            margin-bottom: 28px;
-            box-shadow: 0 2px 6px rgba(101, 69, 47, 0.08);
-        }
-
-        .card h2 {
-            margin: 0 0 16px;
-            color: var(--espresso-dark);
-            font-size: 1.3rem;
-            border-bottom: 1px solid var(--parchment-border);
-            padding-bottom: 8px;
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .form-group label {
-            font-size: 0.83rem;
-            font-weight: 600;
-            color: var(--espresso-dark);
-        }
-
-        .form-group input,
-        .form-group select {
-            padding: 9px 11px;
-            border: 1px solid var(--parchment-border);
-            border-radius: 5px;
-            background-color: #fffdf8;
-            color: var(--ink-text);
-            font-size: 0.92rem;
-        }
-
-        .isbn-row {
-            display: flex;
-            gap: 8px;
-        }
-
-        .isbn-row input { flex: 1; }
-
-        .btn {
-            background-color: var(--espresso-dark);
-            color: #fffaf0;
-            border: none;
-            padding: 9px 16px;
-            border-radius: 5px;
-            font-family: system-ui, sans-serif;
-            font-size: 0.88rem;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        .btn:hover { background-color: var(--espresso-hover); }
-        .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
-        .btn-outline { background: transparent; color: var(--espresso-dark); border: 1px solid var(--espresso-dark); }
-        .btn-outline:hover { background: #ead6ac; }
-        .btn-danger { background: var(--danger-red); }
-        .btn-danger:hover { background: #7f2021; }
-
-        .index-preview {
-            display: inline-block;
-            background: #ead6ac;
-            color: var(--espresso-dark);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-family: monospace;
-            font-weight: bold;
-        }
-
-        .pdf-upload-box {
-            grid-column: 1 / -1;
-            background: #f3e7cb;
-            border: 1px dashed var(--espresso-dark);
-            border-radius: 6px;
-            padding: 14px 16px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.88rem;
-        }
-
-        th, td {
-            padding: 11px 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--parchment-border);
-            vertical-align: middle;
-        }
-
-        th {
-            background-color: #ead6ac;
-            color: var(--espresso-dark);
-            font-size: 0.78rem;
-            text-transform: uppercase;
-        }
-
-        .inline-pdf-form {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .inline-pdf-form input[type="file"] {
-            font-size: 0.78rem;
-            max-width: 185px;
-        }
-
-        .badge-pdf {
-            display: inline-block;
-            background: var(--success-bg);
-            color: var(--success-green);
-            border: 1px solid #95d5b2;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.76rem;
-            font-weight: 600;
-        }
-
-        .badge-nopdf {
-            display: inline-block;
-            background: #ede0c4;
-            color: var(--muted-ink);
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.76rem;
-        }
-
-        .row-deleted {
-            opacity: 0.58;
-            background-color: #f2e5d5;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
 
@@ -446,7 +211,7 @@ $activeLoans = $pdo->query("
 
         <!-- SECTION 1: ADD NEW BOOK & ATTACH PDF -->
         <section class="card">
-            <h2>Add New Book &amp; Link Digital PDF (Module 0.2.2)</h2>
+            <h2>Add New Book &amp; Link Digital PDF</h2>
             <form method="POST" enctype="multipart/form-data" class="form-grid">
                 <input type="hidden" name="action" value="add_book">
 
@@ -496,9 +261,9 @@ $activeLoans = $pdo->query("
 
                 <div class="pdf-upload-box">
                     <div>
-                        <strong style="color: var(--espresso-dark);">Digital Edition (Optional PDF):</strong>
-                        <div style="font-size: 0.82rem; color: var(--muted-ink);">
-                            Upload a .pdf file now so borrowers can read it directly via <code>read_book.php</code>.
+                        <strong class="pdf-upload-title">Digital Edition (Optional PDF):</strong>
+                        <div class="pdf-upload-desc">
+                            Upload a .pdf file now so borrowers can read it directly.
                         </div>
                     </div>
                     <input type="file" name="book_pdf" accept="application/pdf,.pdf">
@@ -509,10 +274,10 @@ $activeLoans = $pdo->query("
 
         <!-- SECTION 2: MANAGE CATALOG & LINK/REPLACE PDFs ON EXISTING BOOKS -->
         <section class="card">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px;">
-                <h2 style="margin: 0; border: none; padding: 0;">Catalog Books &amp; Linked Digital PDFs</h2>
-                <form method="GET" style="display: flex; gap: 8px;">
-                    <input type="text" name="q" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search title, index, ISBN..." style="padding: 7px 11px; border: 1px solid var(--parchment-border); border-radius: 5px;">
+            <div class="catalog-header-bar">
+                <h2 class="catalog-heading">Catalog Books &amp; Linked Digital PDFs</h2>
+                <form method="GET" class="catalog-search-form">
+                    <input type="text" name="q" value="<?= htmlspecialchars($searchQuery) ?>" placeholder="Search title, index, ISBN..." class="catalog-search-input">
                     <button type="submit" class="btn btn-sm">Search</button>
                     <?php if ($searchQuery !== ''): ?>
                         <a href="admin_dashboard.php" class="btn btn-outline btn-sm">Clear</a>
@@ -520,7 +285,7 @@ $activeLoans = $pdo->query("
                 </form>
             </div>
 
-            <div style="overflow-x: auto;">
+            <div class="table-responsive">
                 <table>
                     <thead>
                         <tr>
@@ -538,7 +303,7 @@ $activeLoans = $pdo->query("
                                 <td><code><strong><?= htmlspecialchars($bk['book_index']) ?></strong></code></td>
                                 <td>
                                     <strong><?= htmlspecialchars($bk['title']) ?></strong><br>
-                                    <span style="color: var(--muted-ink); font-size: 0.82rem;">
+                                    <span class="text-muted-sm">
                                         <?= htmlspecialchars($bk['author']) ?> &bull; <?= htmlspecialchars($bk['genre_category']) ?>
                                     </span>
                                 </td>
@@ -546,11 +311,11 @@ $activeLoans = $pdo->query("
                                 <td>
                                     <?php if (!empty($bk['pdf_path'])): ?>
                                         <span class="badge-pdf">PDF Linked</span><br>
-                                        <div style="margin-top: 6px; display: flex; gap: 6px; align-items: center;">
+                                        <div class="pdf-action-row">
                                             <a href="read_book.php?book_id=<?= (int) $bk['book_id'] ?>" target="_blank" class="btn btn-outline btn-sm">
                                                 Preview PDF
                                             </a>
-                                            <form method="POST" style="display:inline;" onsubmit="return confirm('Unlink and delete this PDF file?');">
+                                            <form method="POST" class="form-inline" onsubmit="return confirm('Unlink and delete this PDF file?');">
                                                 <input type="hidden" name="action" value="remove_pdf">
                                                 <input type="hidden" name="book_id" value="<?= (int) $bk['book_id'] ?>">
                                                 <button type="submit" class="btn btn-danger btn-sm">Unlink</button>
@@ -588,11 +353,11 @@ $activeLoans = $pdo->query("
         </section>
 
         <!-- SECTION 3: PENDING MEMBER APPROVALS & ACTIVE RETURNS -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(460px, 1fr)); gap: 24px;">
+        <div class="admin-two-col-grid">
             <section class="card">
                 <h2>Pending Member Approvals (<?= count($pendingMembers) ?>)</h2>
                 <?php if (empty($pendingMembers)): ?>
-                    <p style="color: var(--muted-ink); font-family: system-ui, sans-serif; font-size: 0.9rem;">No pending registrations.</p>
+                    <p class="no-records-msg">No pending registrations.</p>
                 <?php else: ?>
                     <table>
                         <thead>
@@ -606,15 +371,15 @@ $activeLoans = $pdo->query("
                                 <tr>
                                     <td>
                                         <strong><?= htmlspecialchars($pm['full_name']) ?></strong><br>
-                                        <span style="font-size: 0.82rem; color: var(--muted-ink);"><?= htmlspecialchars($pm['email']) ?></span>
+                                        <span class="text-muted-sm"><?= htmlspecialchars($pm['email']) ?></span>
                                     </td>
                                     <td>
-                                        <form method="POST" style="display:inline;">
+                                        <form method="POST" class="form-inline">
                                             <input type="hidden" name="action" value="approve_member">
                                             <input type="hidden" name="member_id" value="<?= (int) $pm['member_id'] ?>">
                                             <button type="submit" class="btn btn-sm">Approve</button>
                                         </form>
-                                        <form method="POST" style="display:inline;">
+                                        <form method="POST" class="form-inline">
                                             <input type="hidden" name="action" value="reject_member">
                                             <input type="hidden" name="member_id" value="<?= (int) $pm['member_id'] ?>">
                                             <button type="submit" class="btn btn-danger btn-sm">Reject</button>
@@ -630,7 +395,7 @@ $activeLoans = $pdo->query("
             <section class="card">
                 <h2>Active Issued Loans (<?= count($activeLoans) ?>)</h2>
                 <?php if (empty($activeLoans)): ?>
-                    <p style="color: var(--muted-ink); font-family: system-ui, sans-serif; font-size: 0.9rem;">No books currently issued.</p>
+                    <p class="no-records-msg">No books currently issued.</p>
                 <?php else: ?>
                     <table>
                         <thead>

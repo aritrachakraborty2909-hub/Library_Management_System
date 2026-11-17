@@ -1,146 +1,1548 @@
-/* Reset default browser spacing */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* ==========================================================================
+   THE READING ROOM — UNIFIED DESIGN SYSTEM STYLESHEET
+   Unified visual design across Catalog, Auth, Member, Staff & Reader views.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Typography & Web Fonts
+   -------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
+
+@font-face {
+  font-family: "Inter:Medium";
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "Inter:Regular";
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Inter:Semi Bold";
+  src: url("https://static.figma.com/font/Inter_1") format("woff2");
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Libre Baskerville:Italic";
+  src: url("https://static.figma.com/font/LibreBaskerville-Italic_wght__1") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Libre Baskerville:Regular";
+  src: url("https://static.figma.com/font/LibreBaskerville_wght__1") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   2. Design Tokens (:root)
+   -------------------------------------------------------------------------- */
+:root {
+  --parchment-bg: #f3e7cb;
+  --parchment-card: #faf3e3;
+  --parchment-border: #d8bd89;
+  --parchment-hover: #ead6ac;
+  --espresso-dark: #65452f;
+  --espresso-hover: #4e3423;
+  --ink-text: #2c1e14;
+  --muted-ink: #5c4636;
+  --success-green: #2d6a4f;
+  --success-bg: #e3f3eb;
+  --danger-red: #9e2a2b;
+  --danger-bg: #f9e2e2;
+  --accent-gold: #facc15;
+  --font-serif: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --shadow-card: 0 2px 8px rgba(101, 69, 47, 0.08);
+  --shadow-card-hover: 0 8px 18px rgba(101, 69, 47, 0.14);
+}
+
+/* --------------------------------------------------------------------------
+   3. Base Reset & Global Styles
+   -------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-    background-color: #f3f0e6; /* Classic Open Library warm cream background */
-    color: #333;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--parchment-bg);
+  color: var(--ink-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
 }
 
-/* Top Navigation Bar */
-.navbar {
-    background-color: #2b3a4a;
-    color: #fff;
-    padding: 15px 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
+  color: var(--espresso-dark);
+  font-weight: 700;
 }
 
-.navbar a {
-    color: #fff;
-    text-decoration: none;
-    margin-left: 20px;
-    font-weight: 500;
+p, span, label, input, button, select, textarea, td, th {
+  font-family: var(--font-sans);
 }
 
-.brand {
-    font-size: 1.5rem;
-    font-weight: bold;
-    letter-spacing: 0.5px;
+ol, ul {
+  list-style: none;
 }
 
-/* Hero Search Banner */
+a {
+  color: var(--espresso-dark);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--espresso-hover);
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+button, input, textarea, select {
+  outline-color: #854825;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   4. Universal Layout & Utilities
+   -------------------------------------------------------------------------- */
+.container {
+  max-width: 1200px;
+  margin: 28px auto;
+  padding: 0 20px 60px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.text-muted {
+  color: var(--muted-ink);
+}
+
+.text-muted-sm {
+  font-size: 0.82rem;
+  color: var(--muted-ink);
+}
+
+.text-espresso {
+  color: var(--espresso-dark);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+.form-inline {
+  display: inline;
+}
+
+.brand-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   5. Universal Navigation Bar (Unified for index, admin, librarian & loans)
+   -------------------------------------------------------------------------- */
+.navbar,
+.top-nav,
+.topbar {
+  background-color: var(--espresso-dark);
+  color: #fffaf0;
+  padding: 14px 36px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-bottom: 3px solid var(--parchment-border);
+  box-shadow: 0 2px 8px rgba(44, 30, 20, 0.15);
+}
+
+.navbar .brand,
+.top-nav .brand,
+.topbar .brand,
+.topbar > div:first-child {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #fffaf0;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+}
+
+.navbar > div,
+.top-nav .nav-links,
+.topbar > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.navbar a,
+.top-nav .nav-links a,
+.topbar a {
+  color: #f3e7cb;
+  text-decoration: none;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 5px;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.navbar a:hover,
+.top-nav .nav-links a:hover,
+.top-nav .nav-links a.active,
+.topbar a:hover {
+  background-color: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.nav-staff-link {
+  color: var(--accent-gold) !important;
+  font-weight: 600 !important;
+  background-color: rgba(250, 204, 21, 0.16);
+  border: 1px solid rgba(250, 204, 21, 0.4);
+}
+
+.nav-staff-link:hover {
+  background-color: rgba(250, 204, 21, 0.26) !important;
+  color: #fff !important;
+}
+
+.nav-user-greeting {
+  color: #f3e7cb;
+  font-size: 0.9rem;
+  margin-left: 12px;
+}
+
+.topbar-nav-link {
+  color: #f3e7cb !important;
+}
+
+.topbar-logout-link {
+  color: #facc15 !important;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   6. Hero & Search Banner (index.php)
+   -------------------------------------------------------------------------- */
 .hero {
-    background-color: #e6e1d3;
-    padding: 40px 20px;
-    text-align: center;
-    border-bottom: 1px solid #d4cebe;
+  background: linear-gradient(180deg, #ede0c4 0%, #f3e7cb 100%);
+  padding: 46px 20px 42px;
+  text-align: center;
+  border-bottom: 2px solid var(--parchment-border);
+}
+
+.hero h1 {
+  font-family: var(--font-serif);
+  font-size: 2.3rem;
+  margin-bottom: 8px;
+  color: var(--espresso-dark);
+  letter-spacing: -0.4px;
+}
+
+.hero p {
+  color: var(--muted-ink);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.08rem;
+  max-width: 640px;
+  margin: 0 auto;
 }
 
 .search-form {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 
 .search-form input {
-    width: 420px;
-    padding: 12px;
-    border: 1px solid #bbb;
-    border-radius: 4px;
-    font-size: 1rem;
+  width: 440px;
+  padding: 12px 16px;
+  border: 1px solid var(--parchment-border);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  background-color: #fffdf8;
+  color: var(--ink-text);
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.btn {
-    padding: 10px 18px;
-    background-color: #0376b8; /* Open Library signature blue */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    text-decoration: none;
-    display: inline-block;
+.search-form input:focus {
+  border-color: var(--espresso-dark);
+  box-shadow: 0 0 0 3px rgba(101, 69, 47, 0.16);
+  outline: none;
 }
 
-.btn:hover {
-    background-color: #025c91;
+#shelf-heading {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  color: var(--espresso-dark);
+  border-bottom: 2px solid var(--parchment-border);
+  padding-bottom: 8px;
+  margin: 32px 0 18px;
 }
 
-/* Responsive Book Shelf Grid */
-.container {
-    max-width: 1100px;
-    margin: 30px auto;
-    padding: 0 20px;
+.no-match-msg {
+  margin-top: 24px;
+  text-align: center;
+  font-family: var(--font-sans);
+  color: var(--muted-ink);
+  display: none;
+  font-size: 1rem;
 }
 
+.no-match-msg.is-visible {
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   7. Buttons (Unified Style)
+   -------------------------------------------------------------------------- */
+.btn,
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 18px;
+  background-color: var(--espresso-dark);
+  color: #fffaf0;
+  border: none;
+  border-radius: 5px;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  box-shadow: 0 2px 4px rgba(101, 69, 47, 0.12);
+}
+
+.btn:hover,
+.primary-button:hover {
+  background-color: var(--espresso-hover);
+  color: #fffaf0;
+  box-shadow: 0 4px 8px rgba(101, 69, 47, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn:active,
+.primary-button:active {
+  transform: translateY(1px);
+}
+
+.btn-sm {
+  padding: 6px 5px;
+  font-size: 0.8rem;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--espresso-dark);
+  border: 1px solid var(--espresso-dark);
+  box-shadow: none;
+}
+
+.btn-outline:hover {
+  background: var(--parchment-hover);
+  color: var(--espresso-dark);
+}
+
+.btn-danger {
+  background-color: var(--danger-red);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background-color: #7f2021;
+}
+
+.btn-reject {
+  background-color: #9e3b2b;
+  color: #fff4da;
+  margin-left: 6px;
+}
+
+.btn-reject:hover {
+  background-color: #7f2021;
+}
+
+.btn-clear {
+  background-color: #64748b;
+  color: #ffffff;
+}
+
+.btn-clear:hover {
+  background-color: #475569;
+}
+
+.btn-signup {
+  background-color: var(--parchment-bg) !important;
+  color: var(--espresso-dark) !important;
+  font-weight: 600;
+  margin-left: 14px;
+}
+
+.btn-signup:hover {
+  background-color: #fff !important;
+}
+
+.btn-full-width {
+  width: 100%;
+}
+
+.btn-login-borrow {
+  width: 100%;
+  text-align: center;
+  margin-top: 10px;
+  background-color: var(--muted-ink);
+  color: #fff;
+}
+
+.btn-login-borrow:hover {
+  background-color: var(--espresso-dark);
+}
+
+/* --------------------------------------------------------------------------
+   8. Cards & Content Panels (Unified Reading Room Aesthetics)
+   -------------------------------------------------------------------------- */
+.card,
+.panel,
+.book-card,
+.stat-card,
+.loan-card,
+.account-form {
+  background-color: var(--parchment-card);
+  border: 1px solid var(--parchment-border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card {
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.card h2,
+.panel h2,
+.section-header h2 {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--espresso-dark);
+  border-bottom: 2px solid var(--parchment-border);
+  padding-bottom: 8px;
+  margin: 0 0 18px;
+}
+
+.panel {
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+/* Catalog Book Grid & Book Cards */
 .book-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 24px;
-    margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
 }
 
 .book-card {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.book-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
+  border-color: #c7a76c;
+}
+
+.book-card h3 {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--espresso-dark);
+  margin: 6px 0;
+  line-height: 1.35;
 }
 
 .book-cover {
-    width: 100%;
-    height: 240px;
-    object-fit: cover;
-    background-color: #e9e6dc;
-    border-radius: 4px;
-    margin-bottom: 12px;
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  background-color: #ede2c8;
+  border-radius: 6px;
+  border: 1px solid var(--parchment-border);
+  margin-bottom: 12px;
+}
+
+.book-author {
+  color: var(--muted-ink);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.book-publisher {
+  font-size: 0.8rem;
+  margin-top: 4px;
+  color: var(--muted-ink);
+}
+
+.book-meta-info {
+  font-size: 0.8rem;
+  margin-top: 6px;
+  color: var(--espresso-dark);
 }
 
 .badge {
-    display: inline-block;
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    border-radius: 4px;
-    margin: 8px 0;
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 4px;
+  margin: 8px 0;
 }
 
-.available { background: #d4edda; color: #155724; }
-.unavailable { background: #f8d7da; color: #721c24; }
-
-/* Auth & Admin Forms */
-.card-box {
-    background: #fff;
-    max-width: 450px;
-    margin: 40px auto;
-    padding: 25px;
-    border-radius: 6px;
-    border: 1px solid #ddd;
+.available {
+  background-color: var(--success-bg);
+  color: var(--success-green);
+  border: 1px solid #95d5b2;
 }
 
-.form-group {
-    margin-bottom: 15px;
+.unavailable {
+  background-color: var(--danger-bg);
+  color: var(--danger-red);
+  border: 1px solid #e5989b;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 600;
+.borrow-form {
+  margin-top: 12px;
 }
 
-.form-group input, .form-group textarea {
+/* --------------------------------------------------------------------------
+   9. Form Controls & Field Styles (Unified)
+   -------------------------------------------------------------------------- */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.form-group,
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-group label,
+.field > span {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--espresso-dark);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea,
+.field input,
+.field textarea {
+  padding: 10px 14px;
+  border: 1px solid var(--parchment-border);
+  border-radius: 5px;
+  background-color: #fffdf8;
+  color: var(--ink-text);
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.field input {
+  height: 48px;
+}
+
+.field textarea {
+  height: 80px;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--espresso-dark);
+  box-shadow: 0 0 0 3px rgba(101, 69, 47, 0.16);
+  outline: none;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #8c735d;
+  opacity: 0.85;
+}
+
+/* --------------------------------------------------------------------------
+   10. Auth & Registration Pages (login, register, forgot/reset password)
+   -------------------------------------------------------------------------- */
+.reading-room {
+  display: grid;
+  grid-template-columns: minmax(380px, 40%) 1fr;
+  min-height: 100vh;
+  background-color: var(--parchment-bg);
+}
+
+/* Left Editorial Panel */
+.editorial {
+  position: relative;
+  background: linear-gradient(180deg, #dfc89d 0%, #d8bd89 100%);
+  padding: 48px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-right: 2px solid var(--parchment-border);
+  min-height: 100vh;
+}
+
+.editorial .brand {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(101, 69, 47, 0.25);
+}
+
+.editorial .brand strong {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--espresso-dark);
+  letter-spacing: 0.5px;
+}
+
+.editorial .brand span {
+  margin-top: 4px;
+  color: var(--muted-ink);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.editorial-intro {
+  margin: 36px 0;
+}
+
+.eyebrow {
+  color: #73502c;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.editorial-intro h1 {
+  margin-top: 14px;
+  font-family: var(--font-serif);
+  font-size: 2.3rem;
+  line-height: 1.25;
+  color: var(--espresso-dark);
+  letter-spacing: -0.4px;
+}
+
+.intro-copy {
+  max-width: 420px;
+  margin-top: 16px;
+  color: var(--muted-ink);
+  font-size: 0.96rem;
+  line-height: 1.6;
+}
+
+.shelves {
+  margin-top: 28px;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--parchment-border);
+  border-radius: 8px;
+}
+
+.shelves h2 {
+  color: var(--espresso-dark);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  border: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+
+.shelves ol {
+  margin-top: 10px;
+}
+
+.shelves li {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  min-height: 60px;
+  align-items: center;
+}
+
+.shelves li:not(:last-child) > div {
+  border-bottom: 1px solid rgba(101, 69, 47, 0.18);
+}
+
+.book-number {
+  color: #775d3d;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.shelves li > div {
+  padding-bottom: 8px;
+}
+
+.shelves h3 {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--espresso-dark);
+}
+
+.shelves li p {
+  margin-top: 2px;
+  color: var(--muted-ink);
+  font-size: 0.78rem;
+}
+
+.editorial-footer {
+  margin-top: 36px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(101, 69, 47, 0.2);
+}
+
+.editorial-footer em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--espresso-dark);
+}
+
+.editorial-footer span {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted-ink);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Right Account Panel */
+.account-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  min-height: 100vh;
+  background-color: var(--parchment-bg);
+}
+
+.page-crumb,
+.page-crumb2 {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-ink);
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.account-form {
+  width: 100%;
+  max-width: 480px;
+  padding: 38px 42px;
+  background-color: var(--parchment-card);
+  border: 1px solid var(--parchment-border);
+  border-radius: 10px;
+  box-shadow: 0 4px 18px rgba(101, 69, 47, 0.12);
+}
+
+.signup-form {
+  max-width: 600px;
+}
+
+.form-eyebrow {
+  color: var(--espresso-dark);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.account-form h2 {
+  font-family: var(--font-serif);
+  font-size: 2rem;
+  color: var(--espresso-dark);
+  margin: 6px 0 6px;
+  border: none;
+  padding: 0;
+}
+
+.form-intro {
+  color: var(--muted-ink);
+  font-size: 0.92rem;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.login-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.signup-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 18px;
+  margin-top: 20px;
+}
+
+.field.full-width {
+  grid-column: 1 / -1;
+}
+
+.account-form .primary-button {
+  width: 100%;
+  height: 48px;
+  font-size: 0.95rem;
+  margin-top: 24px;
+}
+
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  font-size: 0.88rem;
+}
+
+.login-links a,
+.member-link a {
+  color: var(--espresso-dark);
+  font-weight: 600;
+}
+
+.login-links a:hover,
+.member-link a:hover {
+  text-decoration: underline;
+}
+
+.form-note {
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--parchment-border);
+  color: var(--muted-ink);
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.member-link {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  color: var(--muted-ink);
+  font-size: 0.9rem;
+}
+
+.privacy-note {
+  margin-top: 20px;
+  color: var(--muted-ink);
+  text-align: center;
+  font-size: 0.78rem;
+}
+
+/* --------------------------------------------------------------------------
+   11. Alerts & Notifications
+   -------------------------------------------------------------------------- */
+.alert,
+.alert-banner {
+  padding: 13px 18px;
+  border-radius: 6px;
+  margin-bottom: 22px;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.alert-success {
+  background-color: var(--success-bg);
+  color: var(--success-green);
+  border-color: #95d5b2;
+}
+
+.alert-error {
+  background-color: var(--danger-bg);
+  color: var(--danger-red);
+  border-color: #e5989b;
+}
+
+/* --------------------------------------------------------------------------
+   12. Tables (Unified across Dashboards & Loans)
+   -------------------------------------------------------------------------- */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+}
+
+th, td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--parchment-border);
+  vertical-align: middle;
+}
+
+th {
+  background-color: #ead6ac;
+  color: var(--espresso-dark);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+tr:hover td {
+  background-color: rgba(255, 255, 255, 0.45);
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+.table-wrapper {
+  background-color: var(--parchment-card);
+  border: 1px solid var(--parchment-border);
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+/* --------------------------------------------------------------------------
+   13. Staff Workbench & Admin Components (admin_dashboard.php)
+   -------------------------------------------------------------------------- */
+.isbn-row {
+  display: flex;
+  gap: 8px;
+}
+
+.isbn-row input {
+  flex: 1;
+}
+
+.index-preview {
+  display: inline-block;
+  background-color: #ead6ac;
+  color: var(--espresso-dark);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-weight: bold;
+}
+
+.pdf-upload-box {
+  grid-column: 1 / -1;
+  background-color: #f3e7cb;
+  border: 1px dashed var(--espresso-dark);
+  border-radius: 6px;
+  padding: 14px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pdf-upload-title {
+  color: var(--espresso-dark);
+  font-weight: bold;
+}
+
+.pdf-upload-desc {
+  font-size: 0.82rem;
+  color: var(--muted-ink);
+}
+
+.catalog-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.catalog-heading {
+  margin: 0 !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.catalog-search-form {
+  display: flex;
+  gap: 8px;
+}
+
+.catalog-search-input {
+  padding: 7px 12px;
+  border: 1px solid var(--parchment-border);
+  border-radius: 5px;
+  background-color: #fffdf8;
+  color: var(--ink-text);
+  font-size: 0.88rem;
+}
+
+.pdf-action-row {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.inline-pdf-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.inline-pdf-form input[type="file"] {
+  font-size: 0.78rem;
+  max-width: 185px;
+}
+
+.badge-pdf {
+  display: inline-block;
+  background-color: var(--success-bg);
+  color: var(--success-green);
+  border: 1px solid #95d5b2;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.badge-nopdf {
+  display: inline-block;
+  background-color: #ede0c4;
+  color: var(--muted-ink);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.76rem;
+}
+
+.row-deleted {
+  opacity: 0.58;
+  background-color: #f2e5d5;
+}
+
+.admin-two-col-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+  gap: 24px;
+}
+
+.no-records-msg {
+  color: var(--muted-ink);
+  font-size: 0.9rem;
+}
+
+/* --------------------------------------------------------------------------
+   14. Member Loans & Shelf Components (my_loans.php)
+   -------------------------------------------------------------------------- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  padding: 18px 20px;
+}
+
+.stat-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--muted-ink);
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-family: var(--font-serif);
+  font-size: 1.45rem;
+  font-weight: bold;
+  color: var(--espresso-dark);
+}
+
+.stat-value-sm {
+  font-size: 1.2rem;
+}
+
+.stat-value.overdue-text {
+  color: var(--danger-red);
+}
+
+.stat-sub {
+  font-size: 0.8rem;
+  color: var(--muted-ink);
+  margin-top: 4px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 2px solid var(--parchment-border);
+  padding-bottom: 8px;
+  margin: 30px 0 18px;
+}
+
+.section-header h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+}
+
+.section-counter {
+  font-size: 0.85rem;
+  color: var(--muted-ink);
+}
+
+.loan-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loan-card {
+  border-left: 5px solid var(--espresso-dark);
+  padding: 18px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.loan-card.is-overdue {
+  border-left-color: var(--danger-red);
+  background-color: #fdf6f5;
+}
+
+.loan-info {
+  flex: 1;
+  min-width: 260px;
+}
+
+.book-index-tag {
+  display: inline-block;
+  font-family: monospace;
+  font-size: 0.8rem;
+  background-color: #ead6ac;
+  color: var(--espresso-dark);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid var(--parchment-border);
+  margin-bottom: 6px;
+}
+
+.book-genre-tag {
+  background: transparent !important;
+}
+
+.loan-title {
+  font-family: var(--font-serif);
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--ink-text);
+  margin: 2px 0 4px;
+}
+
+.loan-author {
+  font-size: 0.92rem;
+  color: var(--muted-ink);
+  margin-bottom: 10px;
+}
+
+.author-muted {
+  color: var(--muted-ink);
+  font-size: 0.83rem;
+}
+
+.loan-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--muted-ink);
+}
+
+.due-pill {
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #ead6ac;
+  color: var(--espresso-dark);
+}
+
+.due-pill.overdue {
+  background-color: var(--danger-bg);
+  color: var(--danger-red);
+}
+
+.loan-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.btn-read-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: var(--espresso-dark);
+  color: #fffaf0;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
+}
+
+.btn-read-pdf:hover {
+  background-color: var(--espresso-hover);
+  transform: translateY(-1px);
+}
+
+.no-pdf-badge {
+  font-size: 0.82rem;
+  color: var(--muted-ink);
+  background-color: #ede0c4;
+  padding: 7px 12px;
+  border-radius: 5px;
+  border: 1px dashed var(--parchment-border);
+}
+
+.fine-tag {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--danger-red);
+}
+
+.status-returned {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background-color: var(--success-bg);
+  color: var(--success-green);
+}
+
+.empty-state {
+  background-color: var(--parchment-card);
+  border: 1px dashed var(--parchment-border);
+  border-radius: 8px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--muted-ink);
+}
+
+.empty-state a {
+  display: inline-block;
+  margin-top: 12px;
+  background-color: var(--espresso-dark);
+  color: #fffaf0;
+  padding: 9px 18px;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   15. PDF Reader View (read_book.php)
+   -------------------------------------------------------------------------- */
+body.reader-body {
+  background-color: var(--parchment-bg);
+  color: var(--ink-text);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.reader-header {
+  background-color: var(--parchment-bg);
+  border-bottom: 2px solid var(--parchment-border);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  box-shadow: 0 2px 6px rgba(101, 69, 47, 0.12);
+  z-index: 10;
+}
+
+.reader-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--espresso-dark);
+  color: #fffaf0;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 5px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color 0.2s ease;
+}
+
+.btn-back:hover {
+  background-color: var(--espresso-hover);
+}
+
+.book-meta {
+  min-width: 0;
+}
+
+.book-title {
+  font-family: var(--font-serif);
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--espresso-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-sub {
+  font-size: 0.8rem;
+  color: var(--muted-ink);
+}
+
+.reader-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.loan-badge {
+  background-color: #ead6ac;
+  border: 1px solid var(--parchment-border);
+  color: var(--espresso-dark);
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.btn-raw {
+  color: var(--espresso-dark);
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+.reader-viewport {
+  flex: 1;
+  width: 100%;
+  background-color: #3a322d;
+  position: relative;
+}
+
+.pdf-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.pdf-fallback {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--parchment-bg);
+}
+
+.pdf-fallback a {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 10px 18px;
+  background-color: var(--parchment-bg);
+  color: var(--espresso-dark);
+  text-decoration: none;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+/* --------------------------------------------------------------------------
+   16. Responsive Media Queries
+   -------------------------------------------------------------------------- */
+@media (max-width: 980px) {
+  .reading-room {
+    grid-template-columns: 1fr;
+  }
+
+  .editorial {
+    min-height: auto;
+    padding: 36px 24px;
+  }
+
+  .editorial-intro {
+    margin: 28px 0;
+  }
+
+  .editorial-intro h1 {
+    font-size: 2rem;
+  }
+
+  .account-panel {
+    min-height: auto;
+    padding: 36px 20px 60px;
+  }
+}
+
+@media (max-width: 680px) {
+  .navbar,
+  .top-nav,
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 20px;
+  }
+
+  .navbar > div,
+  .top-nav .nav-links,
+  .topbar > div:last-child {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .nav-user-greeting {
+    margin-left: 0;
+  }
+
+  .btn-signup {
+    margin-left: 0;
+  }
+
+  .loan-badge {
+    display: none;
+  }
+
+  .book-title {
+    font-size: 0.95rem;
+  }
+
+  .loan-actions {
+    align-items: flex-start;
     width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+  }
+
+  .btn-read-pdf {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .admin-two-col-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .signup-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .signup-fields .field {
+    grid-column: 1;
+  }
+
+  .account-form {
+    padding: 24px 20px;
+  }
+}
+
+@media (max-width: 540px) {
+  .search-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-form input {
+    width: 100%;
+  }
+
+  .shelves li {
+    grid-template-columns: 28px 1fr;
+  }
+
+  .login-links {
+    flex-direction: column;
+    gap: 12px;
+  }
 }

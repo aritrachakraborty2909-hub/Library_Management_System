@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Log In | The Reading Room</title>
-    <link rel="stylesheet" href="assets/auth.css" />
+    <link rel="stylesheet" href="assets/style.css" />
     <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap)" rel="stylesheet">
   </head>
   <body>
@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <!-- Left Editorial Panel (Login Copy) -->
       <aside class="editorial">
         <header class="brand">
-          <a href="index.php" style="text-decoration:none; color:inherit;">
+          <a href="index.php" class="brand-link">
             <strong>THE READING ROOM</strong><br />
             <span>YOUR NEXT CHAPTER AWAITS</span>
           </a>

@@ -42,14 +42,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Create New Password | The Reading Room</title>
-    <link rel="stylesheet" href="assets/auth.css?v=2" />
+    <link rel="stylesheet" href="assets/style.css" />
   </head>
   <body>
     <div class="reading-room">
       <!-- Left Editorial Panel -->
       <aside class="editorial">
         <header class="brand">
-          <a href="index.php" style="text-decoration: none; color: inherit;">
+          <a href="index.php" class="brand-link">
             <strong>THE READING ROOM</strong><br />
             <span>YOUR NEXT CHAPTER AWAITS</span>
           </a>

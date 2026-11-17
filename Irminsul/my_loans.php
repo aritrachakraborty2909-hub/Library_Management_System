@@ -123,360 +123,6 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Loans & Digital Shelf — The Reading Room</title>
     <link rel="stylesheet" href="assets/style.css">
-    <style>
-        :root {
-            --parchment-bg: #f3e7cb;
-            --parchment-card: #faf3e3;
-            --parchment-border: #d8bd89;
-            --espresso-dark: #65452f;
-            --espresso-hover: #4e3423;
-            --ink-text: #2c1e14;
-            --muted-ink: #5c4636;
-            --danger-red: #9e2a2b;
-            --danger-bg: #f9e2e2;
-            --success-green: #2d6a4f;
-            --success-bg: #e3f3eb;
-        }
-
-        body {
-            background-color: var(--parchment-bg);
-            color: var(--ink-text);
-            font-family: 'Georgia', 'Times New Roman', serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        /* Navbar */
-        .top-nav {
-            background-color: var(--espresso-dark);
-            color: #fffaf0;
-            padding: 14px 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            border-bottom: 3px solid var(--parchment-border);
-        }
-
-        .brand {
-            font-size: 1.35rem;
-            font-weight: bold;
-            color: #fffaf0;
-            text-decoration: none;
-            letter-spacing: 0.4px;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.92rem;
-        }
-
-        .nav-links a {
-            color: #f3e7cb;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 6px 10px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            background-color: rgba(255, 255, 255, 0.14);
-            color: #ffffff;
-        }
-
-        /* Main Container */
-        .container {
-            max-width: 1120px;
-            margin: 28px auto;
-            padding: 0 20px 50px;
-        }
-
-        /* Banners */
-        .alert-banner {
-            padding: 13px 18px;
-            border-radius: 6px;
-            margin-bottom: 22px;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.94rem;
-            font-weight: 500;
-            border: 1px solid;
-        }
-
-        .alert-success {
-            background-color: var(--success-bg);
-            color: var(--success-green);
-            border-color: #95d5b2;
-        }
-
-        .alert-error {
-            background-color: var(--danger-bg);
-            color: var(--danger-red);
-            border-color: #e5989b;
-        }
-
-        /* Account Summary Strip */
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        .stat-card {
-            background-color: var(--parchment-card);
-            border: 1px solid var(--parchment-border);
-            border-radius: 8px;
-            padding: 16px 20px;
-            box-shadow: 0 2px 5px rgba(101, 69, 47, 0.08);
-        }
-
-        .stat-label {
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--muted-ink);
-            margin-bottom: 6px;
-        }
-
-        .stat-value {
-            font-size: 1.45rem;
-            font-weight: bold;
-            color: var(--espresso-dark);
-        }
-
-        .stat-value.overdue-text {
-            color: var(--danger-red);
-        }
-
-        .stat-sub {
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.8rem;
-            color: var(--muted-ink);
-            margin-top: 4px;
-        }
-
-        /* Section Headings */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            border-bottom: 2px solid var(--parchment-border);
-            padding-bottom: 8px;
-            margin: 30px 0 18px;
-        }
-
-        .section-header h2 {
-            margin: 0;
-            font-size: 1.35rem;
-            color: var(--espresso-dark);
-        }
-
-        /* Active Loan Cards */
-        .loan-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .loan-card {
-            background-color: var(--parchment-card);
-            border: 1px solid var(--parchment-border);
-            border-left: 5px solid var(--espresso-dark);
-            border-radius: 8px;
-            padding: 18px 22px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 18px;
-            box-shadow: 0 2px 6px rgba(101, 69, 47, 0.08);
-        }
-
-        .loan-card.is-overdue {
-            border-left-color: var(--danger-red);
-            background-color: #fdf6f5;
-        }
-
-        .loan-info {
-            flex: 1;
-            min-width: 260px;
-        }
-
-        .book-index-tag {
-            display: inline-block;
-            font-family: monospace;
-            font-size: 0.8rem;
-            background-color: #ead6ac;
-            color: var(--espresso-dark);
-            padding: 2px 7px;
-            border-radius: 4px;
-            border: 1px solid var(--parchment-border);
-            margin-bottom: 6px;
-        }
-
-        .loan-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--ink-text);
-            margin: 2px 0 4px;
-        }
-
-        .loan-author {
-            font-size: 0.94rem;
-            color: var(--muted-ink);
-            margin-bottom: 10px;
-        }
-
-        .loan-dates {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.85rem;
-            color: var(--muted-ink);
-        }
-
-        .due-pill {
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background-color: #ead6ac;
-            color: var(--espresso-dark);
-        }
-
-        .due-pill.overdue {
-            background-color: var(--danger-bg);
-            color: var(--danger-red);
-        }
-
-        /* Actions Column */
-        .loan-actions {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 10px;
-            font-family: system-ui, -apple-system, sans-serif;
-        }
-
-        .btn-read-pdf {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background-color: var(--espresso-dark);
-            color: #fffaf0;
-            text-decoration: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.92rem;
-            transition: background-color 0.2s ease, transform 0.1s ease;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.14);
-        }
-
-        .btn-read-pdf:hover {
-            background-color: var(--espresso-hover);
-            transform: translateY(-1px);
-        }
-
-        .no-pdf-badge {
-            font-size: 0.82rem;
-            color: var(--muted-ink);
-            background-color: #ede0c4;
-            padding: 7px 12px;
-            border-radius: 5px;
-            border: 1px dashed var(--parchment-border);
-        }
-
-        .fine-tag {
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--danger-red);
-        }
-
-        /* History Table */
-        .table-wrapper {
-            background-color: var(--parchment-card);
-            border: 1px solid var(--parchment-border);
-            border-radius: 8px;
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.9rem;
-        }
-
-        th, td {
-            padding: 12px 16px;
-            text-align: left;
-            border-bottom: 1px solid var(--parchment-border);
-        }
-
-        th {
-            background-color: #ead6ac;
-            color: var(--espresso-dark);
-            font-weight: 700;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        .status-returned {
-            display: inline-block;
-            padding: 3px 9px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            background-color: var(--success-bg);
-            color: var(--success-green);
-        }
-
-        .empty-state {
-            background-color: var(--parchment-card);
-            border: 1px dashed var(--parchment-border);
-            border-radius: 8px;
-            padding: 32px 20px;
-            text-align: center;
-            color: var(--muted-ink);
-        }
-
-        .empty-state a {
-            display: inline-block;
-            margin-top: 12px;
-            background-color: var(--espresso-dark);
-            color: #fffaf0;
-            padding: 9px 18px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-family: system-ui, -apple-system, sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        @media (max-width: 640px) {
-            .loan-actions {
-                align-items: flex-start;
-                width: 100%;
-            }
-            .btn-read-pdf {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
 </head>
 <body>
 
@@ -504,7 +150,7 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
         <section class="summary-grid">
             <div class="stat-card">
                 <div class="stat-label">Reader</div>
-                <div class="stat-value" style="font-size: 1.2rem;"><?= htmlspecialchars($member['full_name']) ?></div>
+                <div class="stat-value stat-value-sm"><?= htmlspecialchars($member['full_name']) ?></div>
                 <div class="stat-sub">Status: <strong><?= htmlspecialchars($member['account_status']) ?></strong></div>
             </div>
 
@@ -524,7 +170,7 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
 
             <div class="stat-card">
                 <div class="stat-label">Membership Valid Until</div>
-                <div class="stat-value" style="font-size: 1.2rem;">
+                <div class="stat-value stat-value-sm">
                     <?= !empty($member['expiry_date']) ? htmlspecialchars(date('M d, Y', strtotime($member['expiry_date']))) : 'Active' ?>
                 </div>
                 <div class="stat-sub"><?= htmlspecialchars($member['role']) ?> Account</div>
@@ -534,7 +180,7 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
         <!-- Active Loans Section -->
         <div class="section-header">
             <h2>Active Loans & Digital Editions</h2>
-            <span style="font-family: system-ui, sans-serif; font-size: 0.85rem; color: var(--muted-ink);">
+            <span class="section-counter">
                 Digital PDF access remains active until the book is returned
             </span>
         </div>
@@ -551,7 +197,7 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
                     <article class="loan-card <?= $isOverdue ? 'is-overdue' : '' ?>">
                         <div class="loan-info">
                             <span class="book-index-tag"><?= htmlspecialchars($loan['book_index']) ?></span>
-                            <span class="book-index-tag" style="background: transparent;"><?= htmlspecialchars($loan['genre_category']) ?></span>
+                            <span class="book-index-tag book-genre-tag"><?= htmlspecialchars($loan['genre_category']) ?></span>
                             <h3 class="loan-title"><?= htmlspecialchars($loan['title']) ?></h3>
                             <div class="loan-author">by <?= htmlspecialchars($loan['author']) ?> &bull; ISBN: <?= htmlspecialchars($loan['isbn']) ?></div>
 
@@ -617,7 +263,7 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
                                 <td><code><?= htmlspecialchars($past['book_index']) ?></code></td>
                                 <td>
                                     <strong><?= htmlspecialchars($past['title']) ?></strong><br>
-                                    <span style="color: var(--muted-ink); font-size: 0.83rem;"><?= htmlspecialchars($past['author']) ?></span>
+                                    <span class="author-muted"><?= htmlspecialchars($past['author']) ?></span>
                                 </td>
                                 <td><?= htmlspecialchars(date('M d, Y', strtotime($past['issue_date']))) ?></td>
                                 <td><?= htmlspecialchars(date('M d, Y', strtotime($past['due_date']))) ?></td>

@@ -37,15 +37,15 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
             <a href="my_loans.php">My Loans</a>
         <?php endif; ?>
         <?php if ($isStaff): ?>
-            <a href="admin_dashboard.php" style="color:#facc15;">Staff Dashboard</a>
+            <a href="admin_dashboard.php" class="nav-staff-link">Staff Dashboard</a>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['member_id'])): ?>
-            <span style="margin-left:20px;">Hello, <strong><?= htmlspecialchars($_SESSION['full_name']) ?></strong> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
+            <span class="nav-user-greeting">Hello, <strong><?= htmlspecialchars($_SESSION['full_name']) ?></strong> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
             <a href="index.php?action=logout">Logout</a>
         <?php else: ?>
             <a href="login.php">Log In</a>
-            <a href="register.php" class="btn" style="margin-left:15px;">Sign Up</a>
+            <a href="register.php" class="btn btn-signup">Sign Up</a>
         <?php endif; ?>
     </div>
 </nav>
@@ -63,7 +63,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                value="<?= htmlspecialchars($searchQuery) ?>">
         <button type="submit" class="btn">Search</button>
         <?php if ($searchQuery !== ''): ?>
-            <a href="index.php" class="btn" style="background:#64748b;">Clear</a>
+            <a href="index.php" class="btn btn-clear">Clear</a>
         <?php endif; ?>
     </form>
 </section>
@@ -76,7 +76,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
             : "Trending & Available Books" ?>
     </h2>
 
-    <p id="no-match-msg" style="margin-top:20px; display:<?= empty($books) ? 'block' : 'none' ?>;">
+    <p id="no-match-msg" class="no-match-msg<?= empty($books) ? ' is-visible' : '' ?>">
         No books matched your search. Try another title, author, ISBN, or genre.
     </p>
 
@@ -102,12 +102,12 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                              alt="Book Cover">
                         
                         <h3><?= htmlspecialchars($book['title']) ?></h3>
-                        <p style="color:#666; font-size:0.9rem;">by <?= htmlspecialchars($book['author']) ?></p>
-                        <p style="font-size:0.8rem; margin-top:4px; color:#555;">
+                        <p class="book-author">by <?= htmlspecialchars($book['author']) ?></p>
+                        <p class="book-publisher">
                             <?= htmlspecialchars($book['genre_category']) ?>
                             <?= !empty($book['publication_year']) ? ' &bull; ' . (int)$book['publication_year'] : '' ?>
                         </p>
-                        <p style="font-size:0.8rem; margin-top:4px;">
+                        <p class="book-meta-info">
                             Book Index: <strong><?= htmlspecialchars($book['book_index']) ?></strong>
                             &nbsp;|&nbsp; ISBN: <?= htmlspecialchars($book['isbn']) ?>
                         </p>
@@ -120,12 +120,12 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                     </div>
 
                     <?php if (isset($_SESSION['member_id']) && $book['available_copies'] > 0): ?>
-                        <form method="POST" action="borrow_action.php" style="margin-top:10px;">
+                        <form method="POST" action="borrow_action.php" class="borrow-form">
                             <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
-                            <button type="submit" class="btn" style="width:100%;">Borrow Book</button>
+                            <button type="submit" class="btn btn-full-width">Borrow Book</button>
                         </form>
                     <?php elseif (!isset($_SESSION['member_id'])): ?>
-                        <a href="login.php" class="btn" style="width:100%; text-align:center; margin-top:10px; background:#555;">Log in to Borrow</a>
+                        <a href="login.php" class="btn btn-login-borrow">Log in to Borrow</a>
                     <?php endif; ?>
                 </div>
             <?php endforeach; ?>
