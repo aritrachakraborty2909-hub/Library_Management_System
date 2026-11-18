@@ -15,17 +15,12 @@ class CatalogueService
         'Computer Science'   => 'CS',
         'Science Fiction'    => 'SF',
         'Fantasy'            => 'FN',
-        'History'            => 'HS',
         'Philosophy'         => 'PH',
         'Literature'         => 'LT',
         'Biography'          => 'BG',
-        'Mathematics'        => 'MT',
-        'Physics'            => 'PY',
-        'Economics'          => 'EC',
         'Psychology'         => 'PS',
         'Mystery & Thriller' => 'MY',
-        'Reference'          => 'RF',
-        'General'            => 'GN',
+        'Kids Story-books'   => 'KS',
     ];
 
     public function __construct(PDO $pdo)
