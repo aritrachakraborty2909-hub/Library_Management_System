@@ -134,7 +134,7 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
             <?php if (in_array($role, ['Librarian', 'Cataloger', 'System Manager'], true)): ?>
                 <a href="admin_dashboard.php">Staff Workbench</a>
             <?php endif; ?>
-            <a href="logout.php">Logout</a>
+            <a href="index.php">Back to Dashboard</a>
         </div>
     </nav>
 

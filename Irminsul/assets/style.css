@@ -47,25 +47,33 @@
    2. Design Tokens (:root)
    -------------------------------------------------------------------------- */
 :root {
-  --parchment-bg: #f3e7cb;
-  --parchment-card: #faf3e3;
-  --parchment-border: #d8bd89;
-  --parchment-hover: #ead6ac;
-  --espresso-dark: #65452f;
-  --espresso-hover: #4e3423;
-  --ink-text: #2c1e14;
-  --muted-ink: #5c4636;
-  --success-green: #2d6a4f;
-  --success-bg: #e3f3eb;
-  --danger-red: #9e2a2b;
-  --danger-bg: #f9e2e2;
-  --accent-gold: #facc15;
+  /* Cool Ice-Blue Page & Card Surfaces (Replaces Warm Parchment) */
+  --parchment-bg: #eef2f7;
+  --parchment-card: #ffffff;
+  --parchment-border: #cbd5e1;
+  --parchment-hover: #e2e8f0;
+
+  /* Deep Navy Blue Primary Brand (Navbar, Primary Buttons & Headings) */
+  --espresso-dark: #1e3a5f;
+  --espresso-hover: #152a45;
+
+  /* Crisp Slate Ink Text */
+  --ink-text: #0f172a;
+  --muted-ink: #475569;
+
+  /* Status & Crimson Red Accents */
+  --success-green: #1e6049;
+  --success-bg: #e2f3ec;
+  --danger-red: #9b1c24;
+  --danger-bg: #fde8e8;
+  --accent-gold: #f3e7cb; /* Crimson highlight for active tabs / index badges */
+
+  /* Typography & Blue-Tinted Shadows */
   --font-serif: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --shadow-card: 0 2px 8px rgba(101, 69, 47, 0.08);
-  --shadow-card-hover: 0 8px 18px rgba(101, 69, 47, 0.14);
+  --shadow-card: 0 2px 8px rgba(30, 58, 95, 0.08);
+  --shadow-card-hover: 0 8px 18px rgba(30, 58, 95, 0.14);
 }
-
 /* --------------------------------------------------------------------------
    3. Base Reset & Global Styles
    -------------------------------------------------------------------------- */
@@ -185,7 +193,7 @@ img {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  border-bottom: 3px solid var(--parchment-border);
+  /* border-bottom: 3px solid var(--parchment-border); */
   box-shadow: 0 2px 8px rgba(44, 30, 20, 0.15);
 }
 
@@ -263,10 +271,15 @@ img {
    6. Hero & Search Banner (index.php)
    -------------------------------------------------------------------------- */
 .hero {
-  background: linear-gradient(180deg, #ede0c4 0%, #f3e7cb 100%);
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.3)), 
+    url("https://i.pinimg.com/736x/72/86/0a/72860ad3e7a7e8c21a17447f1b3b3d53.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   padding: 46px 20px 42px;
   text-align: center;
-  border-bottom: 2px solid var(--parchment-border);
+  /* border-bottom: 2px solid var(--parchment-border); */
 }
 
 .hero h1 {
@@ -441,6 +454,34 @@ img {
   background-color: var(--espresso-dark);
 }
 
+/* Password Input with Eye Toggle */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input {
+  width: 100%;
+  padding-right: 44px; /* Leaves room on the right for the eye icon */
+}
+
+.toggle-password-btn {
+  position: absolute;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted-ink);
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.toggle-password-btn:hover {
+  color: var(--espresso-dark);
+}
 /* --------------------------------------------------------------------------
    8. Cards & Content Panels (Unified Reading Room Aesthetics)
    -------------------------------------------------------------------------- */
@@ -491,12 +532,13 @@ img {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background-color: #f4f0e0;
 }
 
 .book-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-card-hover);
-  border-color: #c7a76c;
+  background-color: #f3d293;
 }
 
 .book-card h3 {
@@ -1440,9 +1482,7 @@ body.reader-body {
   font-weight: bold;
 }
 
-/* --------------------------------------------------------------------------
-   16. Responsive Media Queries
-   -------------------------------------------------------------------------- */
+
 @media (max-width: 980px) {
   .reading-room {
     grid-template-columns: 1fr;
@@ -1545,4 +1585,10 @@ body.reader-body {
     flex-direction: column;
     gap: 12px;
   }
+}
+.login-panel{
+  display: flex;
+  justify-content: space-around;
+  gap: 350px;
+  padding-bottom: 25px;
 }

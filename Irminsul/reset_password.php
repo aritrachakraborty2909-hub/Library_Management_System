@@ -44,6 +44,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Create New Password | The Reading Room</title>
     <link rel="stylesheet" href="assets/style.css" />
   </head>
+  <script>
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const eyeOpen = btn.querySelector('.eye-open');
+    const eyeClosed = btn.querySelector('.eye-closed');
+
+    if (input.type === 'password') {
+      input.type = 'text';
+      eyeOpen.classList.add('hidden');
+      eyeClosed.classList.remove('hidden');
+      btn.setAttribute('aria-label', 'Hide password');
+    } else {
+      input.type = 'password';
+      eyeOpen.classList.remove('hidden');
+      eyeClosed.classList.add('hidden');
+      btn.setAttribute('aria-label', 'Show password');
+    }
+  }
+</script>
   <body>
     <div class="reading-room">
       <!-- Left Editorial Panel -->
@@ -114,14 +133,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
           <div class="login-fields">
             <label class="field">
-              <span>New Password</span>
-              <input type="password" name="new_password" placeholder="Create a new password" required />
-            </label>
+    <span>Enter new Password</span>
+    <div class="password-wrapper">
+      <input
+        type="password"
+        id="create-password"
+        name="create_password"
+        placeholder="Enter your password"
+        required
+      />
+      <button
+        type="button"
+        class="toggle-password-btn"
+        onclick="togglePassword('create-password', this)"
+        aria-label="Show password"
+      >
+        <!-- Open Eye SVG Icon -->
+        <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <!-- Closed/Slashed Eye SVG Icon (Hidden by default) -->
+        <svg class="eye-closed hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        </svg>
+      </button>
+    </div>
+  </label>
             <label class="field">
-              <span>Confirm New Password</span>
-              <input type="password" name="confirm_password" placeholder="Re-enter your new password" required />
-            </label>
-          </div>
+    <span>COnfirm your new Password</span>
+    <div class="password-wrapper">
+      <input
+        type="password"
+        id="confirm-password"
+        name="confirm_password"
+        placeholder="Enter your password"
+        required
+      />
+      <button
+        type="button"
+        class="toggle-password-btn"
+        onclick="togglePassword('confirm-password', this)"
+        aria-label="Show password"
+      >
+        <!-- Open Eye SVG Icon -->
+        <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        </svg>
+        <!-- Closed/Slashed Eye SVG Icon (Hidden by default) -->
+        <svg class="eye-closed hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        </svg>
+      </button>
+    </div>
+  </label>
 
           <button class="primary-button" type="submit">Update Password</button>
 
