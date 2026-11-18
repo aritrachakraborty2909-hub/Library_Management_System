@@ -106,10 +106,10 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                         <p class="book-publisher">
                             <?= htmlspecialchars($book['genre_category']) ?>
                             <?= !empty($book['publication_year']) ? ' &bull; ' . (int)$book['publication_year'] : '' ?>
-                        </p>
+                        </p>   
                         <p class="book-meta-info">
-                            Book Index: <strong><?= htmlspecialchars($book['book_index']) ?></strong>
-                            &nbsp;|&nbsp; ISBN: <?= htmlspecialchars($book['isbn']) ?>
+                            Book Index: <strong><?= htmlspecialchars($book['book_index']) ?></strong><br>
+                            ISBN: <?= htmlspecialchars($book['isbn']) ?>
                         </p>
 
                         <?php if ($book['available_copies'] > 0): ?>

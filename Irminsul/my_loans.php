@@ -1,7 +1,6 @@
 <?php
 // my_loans.php
-// Module 0.3.2: View Active Loans, Live Overdue Fine Calculation (₹10/day), Loan History & Digital Reader Access
-session_start();
+// Module 0.3.2: View Active Loans, Loan History & Digital Reader Access
 require_once __DIR__ . '/config/db.php';
 
 // 1. Verify Authentication
@@ -38,7 +37,6 @@ $loansStmt = $pdo->prepare("
         br.due_date,
         br.return_date,
         br.loan_status,
-        br.fine_amount,
         bk.book_index,
         bk.isbn,
         bk.title,
@@ -60,28 +58,19 @@ $loansStmt = $pdo->prepare("
 $loansStmt->execute([':member_id' => $memberId]);
 $allLoans = $loansStmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 4. Separate Active/Pending Loans from Returned History & Calculate Live Fines (₹10/day)
-$activeLoans     = [];
-$pastLoans       = [];
-$totalLiveFines  = 0.0;
-$dailyFineRate   = 10; // ₹10 per overdue day
-
-$today = new DateTimeImmutable('today');
+// 4. Separate Active/Pending Loans from Returned History
+$activeLoans = [];
+$pastLoans   = [];
+$today       = new DateTimeImmutable('today');
 
 foreach ($allLoans as $loan) {
     if ($loan['loan_status'] === 'Issued' || $loan['loan_status'] === 'Pending') {
-        $dueDate      = new DateTimeImmutable(date('Y-m-d', strtotime($loan['due_date'])));
-        $daysOverdue  = 0;
-        $liveFine     = 0.0;
-
-        if ($loan['loan_status'] === 'Issued' && $today > $dueDate) {
-            $daysOverdue = (int) $dueDate->diff($today)->days;
-            $liveFine    = $daysOverdue * $dailyFineRate;
-            $totalLiveFines += $liveFine;
-        }
+        $dueDate     = new DateTimeImmutable(date('Y-m-d', strtotime($loan['due_date'])));
+        $daysOverdue = ($loan['loan_status'] === 'Issued' && $today > $dueDate)
+            ? (int) $dueDate->diff($today)->days
+            : 0;
 
         $loan['days_overdue'] = $daysOverdue;
-        $loan['live_fine']    = $liveFine;
         $activeLoans[]        = $loan;
     } else {
         $pastLoans[] = $loan;
@@ -89,15 +78,21 @@ foreach ($allLoans as $loan) {
 }
 
 $activeCount = count($activeLoans);
-$maxLimit    = (int) ($member['max_borrowing_limit'] ?? 3);
+$maxLimit    = (int) ($member['max_borrowing_limit'] ?? 5);
 
 // 5. Handle Status & Error Banners
 $bannerMessage = '';
 $bannerType    = '';
 
-if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
+if (isset($_GET['borrowed'])) {
     $bannerMessage = 'Book borrowed successfully! Your 14-day reading period has started.';
     $bannerType    = 'success';
+} elseif (isset($_GET['returned'])) {
+    $bannerMessage = $_GET['returned'] !== '1' ? $_GET['returned'] : 'Book returned successfully!';
+    $bannerType    = 'success';
+} elseif (isset($_GET['err'])) {
+    $bannerMessage = $_GET['err'];
+    $bannerType    = 'error';
 } elseif (isset($_GET['error'])) {
     $bannerType = 'error';
     switch ($_GET['error']) {
@@ -109,6 +104,9 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
             break;
         case 'account_locked':
             $bannerMessage = 'Your account is currently locked due to overdue items or pending verification.';
+            break;
+        case 'invalid_loan':
+            $bannerMessage = 'Unable to return book: Active loan record not found.';
             break;
         default:
             $bannerMessage = 'Unable to complete your request. Please try again.';
@@ -158,14 +156,6 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
                 <div class="stat-label">Active Borrowings</div>
                 <div class="stat-value"><?= $activeCount ?> / <?= $maxLimit ?></div>
                 <div class="stat-sub"><?= max(0, $maxLimit - $activeCount) ?> slot(s) remaining</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Accrued Live Overdue Fines</div>
-                <div class="stat-value <?= $totalLiveFines > 0 ? 'overdue-text' : '' ?>">
-                    ₹<?= number_format($totalLiveFines, 2) ?>
-                </div>
-                <div class="stat-sub">Rate: ₹<?= $dailyFineRate ?>/day past due date</div>
             </div>
 
             <div class="stat-card">
@@ -223,10 +213,13 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
                                 <span class="no-pdf-badge">Physical Copy Only (No PDF)</span>
                             <?php endif; ?>
 
-                            <?php if ($isOverdue): ?>
-                                <span class="fine-tag">
-                                    Live Fine: ₹<?= number_format($loan['live_fine'], 2) ?>
-                                </span>
+                            <?php if ($loan['loan_status'] === 'Issued'): ?>
+                                <form method="POST" action="return_action.php" style="width: 100%;" onsubmit="return confirm('Return &quot;<?= htmlspecialchars(addslashes($loan['title'])) ?>&quot; now?');">
+                                    <input type="hidden" name="borrowing_id" value="<?= (int) $loan['borrowing_id'] ?>">
+                                    <button type="submit" class="btn btn-outline btn-sm" style="width: 100%;">
+                                        Return Book
+                                    </button>
+                                </form>
                             <?php endif; ?>
                         </div>
                     </article>
@@ -253,7 +246,6 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
                             <th>Issue Date</th>
                             <th>Due Date</th>
                             <th>Return Date</th>
-                            <th>Settled Fine</th>
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -270,7 +262,6 @@ if (isset($_GET['borrowed']) && $_GET['borrowed'] === '1') {
                                 <td>
                                     <?= !empty($past['return_date']) ? htmlspecialchars(date('M d, Y', strtotime($past['return_date']))) : '—' ?>
                                 </td>
-                                <td>₹<?= number_format((float) ($past['fine_amount'] ?? 0), 2) ?></td>
                                 <td><span class="status-returned"><?= htmlspecialchars($past['loan_status']) ?></span></td>
                             </tr>
                         <?php endforeach; ?>
