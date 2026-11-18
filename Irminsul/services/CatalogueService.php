@@ -1,12 +1,15 @@
 <?php
 // services/CatalogueService.php
-// Modules 0.2.1 (Search), 0.2.2 (Add Book + Auto Book Index + PDF Upload), 0.2.3 (Soft-Delete/Restore)
+// Modules 0.2.1 (Search), 0.2.2 (Add Book + Auto Book Index + Cloud/Local PDF Upload), 0.2.3 (Soft-Delete/Restore)
 // Supports both OOP (CatalogueService) and procedural function calls used across index.php & admin_dashboard.php
 
 class CatalogueService
 {
     private PDO $pdo;
     private string $uploadDir;
+    private string $supabaseUrl;
+    private string $supabaseKey;
+    private string $supabaseBucket;
 
     /**
      * Genre-to-Prefix map for automatic Book Index generation (e.g., SF-01, CS-02)
@@ -31,6 +34,19 @@ class CatalogueService
         if (!is_dir($this->uploadDir)) {
             mkdir($this->uploadDir, 0755, true);
         }
+
+        // Load Supabase Storage credentials from environment (.env)
+        $this->supabaseUrl    = rtrim((string) ($_ENV['SUPABASE_URL'] ?? getenv('SUPABASE_URL') ?: ''), '/');
+        $this->supabaseKey    = (string) ($_ENV['SUPABASE_SERVICE_KEY'] ?? getenv('SUPABASE_SERVICE_KEY') ?: '');
+        $this->supabaseBucket = (string) ($_ENV['SUPABASE_BUCKET'] ?? getenv('SUPABASE_BUCKET') ?: 'books');
+    }
+
+    /**
+     * Checks whether Supabase Storage is configured
+     */
+    private function isSupabaseConfigured(): bool
+    {
+        return $this->supabaseUrl !== '' && $this->supabaseKey !== '';
     }
 
     /**
@@ -121,11 +137,11 @@ class CatalogueService
         }
 
         $bookIndex = $this->generateNextBookIndex($genreCategory);
-        $savedPdfFileName = null;
+        $savedPdfPath = null;
 
         try {
             if ($pdfFile && isset($pdfFile['error']) && $pdfFile['error'] !== UPLOAD_ERR_NO_FILE) {
-                $savedPdfFileName = $this->processPdfUpload($pdfFile, $bookIndex);
+                $savedPdfPath = $this->processPdfUpload($pdfFile, $bookIndex);
             }
 
             $stmt = $this->pdo->prepare("
@@ -151,17 +167,14 @@ class CatalogueService
                 ':book_index'       => $bookIndex,
                 ':total_copies'     => $totalCopies,
                 ':available_copies' => $totalCopies,
-                ':pdf_path'         => $savedPdfFileName,
+                ':pdf_path'         => $savedPdfPath,
             ]);
 
             return $stmt->fetch(PDO::FETCH_ASSOC);
 
         } catch (Throwable $e) {
-            if ($savedPdfFileName !== null) {
-                $orphanPath = $this->uploadDir . DIRECTORY_SEPARATOR . $savedPdfFileName;
-                if (is_file($orphanPath)) {
-                    @unlink($orphanPath);
-                }
+            if ($savedPdfPath !== null) {
+                $this->deleteStoredPdf($savedPdfPath);
             }
             throw $e;
         }
@@ -189,7 +202,7 @@ class CatalogueService
             throw new InvalidArgumentException('Please choose a PDF file to upload.');
         }
 
-        $newFileName = $this->processPdfUpload($pdfFile, $book['book_index']);
+        $newPdfPath = $this->processPdfUpload($pdfFile, $book['book_index']);
 
         $updateStmt = $this->pdo->prepare("
             UPDATE books 
@@ -197,18 +210,15 @@ class CatalogueService
             WHERE book_id = :book_id
         ");
         $updateStmt->execute([
-            ':pdf_path' => $newFileName,
+            ':pdf_path' => $newPdfPath,
             ':book_id'  => $bookId,
         ]);
 
-        if (!empty($book['pdf_path']) && $book['pdf_path'] !== $newFileName) {
-            $oldPath = $this->uploadDir . DIRECTORY_SEPARATOR . basename($book['pdf_path']);
-            if (is_file($oldPath)) {
-                @unlink($oldPath);
-            }
+        if (!empty($book['pdf_path']) && $book['pdf_path'] !== $newPdfPath) {
+            $this->deleteStoredPdf((string) $book['pdf_path']);
         }
 
-        return $newFileName;
+        return $newPdfPath;
     }
 
     /**
@@ -224,10 +234,7 @@ class CatalogueService
         $updateStmt->execute([':book_id' => $bookId]);
 
         if (!empty($pdfPath)) {
-            $fullPath = $this->uploadDir . DIRECTORY_SEPARATOR . basename((string) $pdfPath);
-            if (is_file($fullPath)) {
-                @unlink($fullPath);
-            }
+            $this->deleteStoredPdf((string) $pdfPath);
         }
     }
 
@@ -247,7 +254,7 @@ class CatalogueService
     }
 
     /**
-     * Validates MIME type & moves uploaded PDF to uploads/pdfs/
+     * Validates MIME type & uploads PDF to Supabase Storage (or local uploads/pdfs/ fallback)
      */
     private function processPdfUpload(array $file, string $bookIndex): string
     {
@@ -271,13 +278,93 @@ class CatalogueService
         $safePrefix = preg_replace('/[^A-Za-z0-9\-]/', '', $bookIndex);
         $uniqueSuffix = time() . '_' . bin2hex(random_bytes(3));
         $fileName = "{$safePrefix}_{$uniqueSuffix}.pdf";
-        $destination = $this->uploadDir . DIRECTORY_SEPARATOR . $fileName;
 
+        // 1. Upload to Supabase Storage if credentials are configured in .env
+        if ($this->isSupabaseConfigured()) {
+            return $this->uploadToSupabase($file['tmp_name'], $fileName);
+        }
+
+        // 2. Fallback: Save locally to uploads/pdfs/
+        $destination = $this->uploadDir . DIRECTORY_SEPARATOR . $fileName;
         if (!move_uploaded_file($file['tmp_name'], $destination)) {
             throw new RuntimeException('Unable to move uploaded PDF to uploads/pdfs/. Check folder permissions.');
         }
 
         return $fileName;
+    }
+
+    /**
+     * Sends PDF binary to Supabase Storage REST API and returns the public URL
+     */
+    private function uploadToSupabase(string $tmpFilePath, string $fileName): string
+    {
+        if (!function_exists('curl_init')) {
+            throw new RuntimeException('PHP cURL extension is required for Supabase uploads. Enable extension=curl in php.ini.');
+        }
+
+        $uploadEndpoint = "{$this->supabaseUrl}/storage/v1/object/{$this->supabaseBucket}/{$fileName}";
+        $fileContent = file_get_contents($tmpFilePath);
+
+        if ($fileContent === false) {
+            throw new RuntimeException('Unable to read temporary uploaded PDF file.');
+        }
+
+        $ch = curl_init($uploadEndpoint);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $fileContent,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_HTTPHEADER     => [
+                "Authorization: Bearer {$this->supabaseKey}",
+                "apikey: {$this->supabaseKey}",
+                "Content-Type: application/pdf",
+                "x-upsert: true",
+            ],
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+
+        if ($response === false || $httpCode < 200 || $httpCode >= 300) {
+            $detail = $curlErr !== '' ? $curlErr : (string) $response;
+            throw new RuntimeException("Supabase Storage upload failed (HTTP {$httpCode}): {$detail}");
+        }
+
+        // Return the public URL to be saved in Neon's books.pdf_path column
+        return "{$this->supabaseUrl}/storage/v1/object/public/{$this->supabaseBucket}/{$fileName}";
+    }
+
+    /**
+     * Deletes a PDF either from Supabase Storage or local uploads/pdfs/
+     */
+    private function deleteStoredPdf(string $pdfPath): void
+    {
+        if (preg_match('/^https?:\/\//i', $pdfPath)) {
+            if ($this->isSupabaseConfigured() && function_exists('curl_init')) {
+                $fileName = basename((string) parse_url($pdfPath, PHP_URL_PATH));
+                $deleteEndpoint = "{$this->supabaseUrl}/storage/v1/object/{$this->supabaseBucket}/{$fileName}";
+
+                $ch = curl_init($deleteEndpoint);
+                curl_setopt_array($ch, [
+                    CURLOPT_CUSTOMREQUEST  => 'DELETE',
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_HTTPHEADER     => [
+                        "Authorization: Bearer {$this->supabaseKey}",
+                        "apikey: {$this->supabaseKey}",
+                    ],
+                ]);
+                curl_exec($ch);
+                curl_close($ch);
+            }
+            return;
+        }
+
+        $localPath = $this->uploadDir . DIRECTORY_SEPARATOR . basename($pdfPath);
+        if (is_file($localPath)) {
+            @unlink($localPath);
+        }
     }
 }
 

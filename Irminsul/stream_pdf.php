@@ -66,7 +66,13 @@ try {
         exit('Access Denied: You must have an active loan for this book to read it.');
     }
 
-    // 4. Resolve & Sanitize File Path (Prevents Directory Traversal)
+    // 3.5. Redirect to Cloud/Online PDF URL (e.g., Supabase Storage or GitHub Raw)
+    if (preg_match('/^https?:\/\//i', trim($book['pdf_path']))) {
+        header('Location: ' . trim($book['pdf_path']));
+        exit;
+    }
+
+    // 4. Resolve & Sanitize Local File Path (Prevents Directory Traversal)
     $baseDir  = realpath(__DIR__ . '/uploads/pdfs');
     $fileName = basename($book['pdf_path']); // Strips any ../ attempts
     $filePath = $baseDir ? realpath($baseDir . DIRECTORY_SEPARATOR . $fileName) : false;
