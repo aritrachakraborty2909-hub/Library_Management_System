@@ -113,7 +113,11 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                         </p>
 
                         <?php if ($book['available_copies'] > 0): ?>
+                        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Librarian'): ?>
                             <span class="badge available">Available (<?= (int)$book['available_copies'] ?>/<?= (int)$book['total_copies'] ?>)</span>
+                        <?php else: ?>
+                            <span class="badge available">Available</span>
+                        <?php endif; ?>
                         <?php else: ?>
                             <span class="badge unavailable">Checked Out</span>
                         <?php endif; ?>
