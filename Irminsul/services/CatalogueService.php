@@ -24,6 +24,11 @@ class CatalogueService
         'Psychology'         => 'PS',
         'Mystery & Thriller' => 'MY',
         'Kids Story-books'   => 'KS',
+        'Science & Nature'   => 'SN',
+        'Economics'          => 'EC',
+        'Mythology'          => 'MT',
+        'Poetry & Drama'     => 'PD',
+        'Sports'             => 'SP'
     ];
 
     public function __construct(PDO $pdo)

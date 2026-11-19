@@ -15,7 +15,7 @@ $searchQuery = trim($_GET['q'] ?? '');
 // Call Module 0.2.1 (Search Book across Title, Author, ISBN, Genre, Publisher, Index, Year)
 $books = searchBooks($pdo, $searchQuery);
 
-$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
+$staffRoles = ['Librarian', 'Cataloger'];
 $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
 ?>
 <!DOCTYPE html>
