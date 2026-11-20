@@ -12,6 +12,11 @@ if (!isset($_SESSION['member_id'])) {
 $memberId = (int) $_SESSION['member_id'];
 $role     = $_SESSION['role'] ?? 'Member';
 
+if (in_array($role, ['Librarian', 'Cataloger', 'System Manager'], true)) {
+    header('Location: index.php');
+    exit;
+}
+
 // 2. Fetch Member Account Info from D1 (members)
 $memberStmt = $pdo->prepare("
     SELECT full_name, email, role, account_status, expiry_date, max_borrowing_limit 

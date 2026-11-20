@@ -15,11 +15,16 @@ $searchQuery = trim($_GET['q'] ?? '');
 // Call Module 0.2.1
 $books = searchBooks($pdo, $searchQuery);
 
-// Fetch logged-in user's wishlist book IDs & active borrowed book IDs
-$wishlistedIds      = [];
-$activeBorrowedIds  = [];
+// Role & Borrowing Permissions
+$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
+$isStaff    = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
+$canBorrow  = isset($_SESSION['member_id']) && !$isStaff;
 
-if (isset($_SESSION['member_id'])) {
+// Fetch logged-in regular member's wishlist book IDs & active borrowed book IDs
+$wishlistedIds     = [];
+$activeBorrowedIds = [];
+
+if ($canBorrow) {
     $currentMemberId = (int)$_SESSION['member_id'];
 
     // Wishlist IDs
@@ -27,7 +32,7 @@ if (isset($_SESSION['member_id'])) {
     $wStmt->execute([':mid' => $currentMemberId]);
     $wishlistedIds = array_map('intval', $wStmt->fetchAll(PDO::FETCH_COLUMN));
 
-    // Active Borrowed Book IDs (only for THIS logged-in user/admin)
+    // Active Borrowed Book IDs (only for THIS logged-in member)
     $bStmt = $pdo->prepare("
         SELECT DISTINCT book_id 
         FROM borrowings 
@@ -64,9 +69,6 @@ foreach ($books as $b) {
     }
 }
 ksort($genreStacks);
-
-$staffRoles = ['Librarian', 'Cataloger'];
-$isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -90,7 +92,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     <div class="brand">THE READING ROOM</div>
     <div>
         <a href="index.php">Browse Books</a>
-        <?php if (isset($_SESSION['member_id'])): ?>
+        <?php if ($canBorrow): ?>
             <a href="my_loans.php">My Loans</a>
         <?php endif; ?>
         <?php if ($isStaff): ?>
@@ -109,7 +111,8 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                 <?php else: ?>
                     <span class="nav-avatar-fallback"><?= htmlspecialchars($navInitial) ?></span>
                 <?php endif; ?>
-                <span><?= htmlspecialchars($_SESSION['full_name']) ?> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
+                <?php $displayRole = ($_SESSION['role'] === 'Librarian') ? 'Cataloger' : $_SESSION['role']; ?>
+                <span><?= htmlspecialchars($_SESSION['full_name']) ?> (<?= htmlspecialchars($displayRole) ?>)</span>
             </a>
             <a href="index.php?action=logout">Logout</a>
         <?php else: ?>
@@ -197,7 +200,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                 <div class="shelf-filter-pills">
                     <button type="button" class="shelf-pill is-active" data-avail="all">All Editions</button>
                     <button type="button" class="shelf-pill" data-avail="available">Available Now</button>
-                    <?php if (isset($_SESSION['member_id'])): ?>
+                    <?php if ($canBorrow): ?>
                         <button type="button" class="shelf-pill" data-avail="wishlist">Saved &#9829;</button>
                     <?php endif; ?>
                 </div>
@@ -234,7 +237,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                              data-available="<?= $isBookAvailable ? '1' : '0' ?>"
                              data-wishlist="<?= $inWishlist ? '1' : '0' ?>">
                             <div style="position: relative;">
-                                <?php if (isset($_SESSION['member_id'])): ?>
+                                <?php if ($canBorrow): ?>
                                     <form method="POST" action="wishlist_action.php" class="wishlist-heart-form">
                                         <input type="hidden" name="book_id" value="<?= $bookId ?>">
                                         <input type="hidden" name="redirect" value="index.php">
@@ -259,7 +262,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                                 </p>
 
                                 <?php if ($isBookAvailable): ?>
-                                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Librarian'): ?>
+                                    <?php if ($isStaff): ?>
                                         <span class="badge available">Available (<?= (int)$book['available_copies'] ?>/<?= (int)$book['total_copies'] ?>)</span>
                                     <?php endif; ?>
                                 <?php else: ?>
@@ -267,7 +270,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                                 <?php endif; ?>
                             </div>
 
-                            <?php if (isset($_SESSION['member_id'])): ?>
+                            <?php if ($canBorrow): ?>
                                 <?php if ($isBorrowedByUser): ?>
                                     <div class="borrow-form">
                                         <button type="button" class="btn btn-full-width btn-borrowed" disabled>Borrowed</button>
@@ -278,7 +281,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                                         <button type="submit" class="btn btn-full-width">Borrow Book</button>
                                     </form>
                                 <?php endif; ?>
-                            <?php elseif ($isBookAvailable): ?>
+                            <?php elseif (!isset($_SESSION['member_id']) && $isBookAvailable): ?>
                                 <a href="login.php" class="btn btn-login-borrow">Log in to Borrow</a>
                             <?php endif; ?>
                         </div>

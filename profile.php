@@ -142,39 +142,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// 4. Fetch Currently Borrowed Books
-$loansStmt = $pdo->prepare("
-    SELECT 
-        br.borrowing_id,
-        br.due_date,
-        br.loan_status,
-        bk.book_id,
-        bk.title,
-        bk.author,
-        bk.isbn,
-        bk.genre_category,
-        bk.pdf_path
-    FROM borrowings br
-    JOIN books bk ON br.book_id = bk.book_id
-    WHERE br.member_id = :mid 
-      AND br.loan_status IN ('Issued', 'Pending')
-    ORDER BY br.issue_date DESC, br.borrowing_id DESC
-");
-$loansStmt->execute([':mid' => $memberId]);
-$borrowedBooks = $loansStmt->fetchAll(PDO::FETCH_ASSOC);
+$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
+$isStaff    = in_array($member['role'] ?? '', $staffRoles, true);
 
-// 5. Fetch User's Wishlist Books
-$wishStmt = $pdo->prepare("
-    SELECT w.wishlist_id, b.book_id, b.title, b.author, b.isbn, b.genre_category, b.available_copies, b.pdf_path
-    FROM wishlist w
-    JOIN books b ON w.book_id = b.book_id
-    WHERE w.member_id = :mid AND b.is_deleted = FALSE
-    ORDER BY w.added_at DESC
-");
-$wishStmt->execute([':mid' => $memberId]);
-$wishlistBooks = $wishStmt->fetchAll(PDO::FETCH_ASSOC);
+// 4 & 5. Fetch Loans & Wishlist only for regular Members
+$borrowedBooks = [];
+$wishlistBooks = [];
+
+if (!$isStaff) {
+    $loansStmt = $pdo->prepare("
+        SELECT 
+            br.borrowing_id,
+            br.due_date,
+            br.loan_status,
+            bk.book_id,
+            bk.title,
+            bk.author,
+            bk.isbn,
+            bk.genre_category,
+            bk.pdf_path
+        FROM borrowings br
+        JOIN books bk ON br.book_id = bk.book_id
+        WHERE br.member_id = :mid 
+          AND br.loan_status IN ('Issued', 'Pending')
+        ORDER BY br.issue_date DESC, br.borrowing_id DESC
+    ");
+    $loansStmt->execute([':mid' => $memberId]);
+    $borrowedBooks = $loansStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $wishStmt = $pdo->prepare("
+        SELECT w.wishlist_id, b.book_id, b.title, b.author, b.isbn, b.genre_category, b.available_copies, b.pdf_path
+        FROM wishlist w
+        JOIN books b ON w.book_id = b.book_id
+        WHERE w.member_id = :mid AND b.is_deleted = FALSE
+        ORDER BY w.added_at DESC
+    ");
+    $wishStmt->execute([':mid' => $memberId]);
+    $wishlistBooks = $wishStmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 $initial     = strtoupper(mb_substr($member['full_name'], 0, 1));
+$displayRole = ($member['role'] === 'Librarian') ? 'Cataloger' : $member['role'];
 $maxLimit    = (int) ($member['max_borrowing_limit'] ?? 5);
 $slotsLeft   = max(0, $maxLimit - count($borrowedBooks));
 $hasValidPic = isValidProfilePic($member['profile_pic']);
@@ -185,7 +193,7 @@ $hasValidPic = isValidProfilePic($member['profile_pic']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($member['full_name']) ?> — Profile | The Reading Room</title>
-    <link rel="stylesheet" href="assets/style.css?v=9">
+    <link rel="stylesheet" href="assets/style.css?v=13">
     <script>
       // Apply saved theme before paint to prevent flash
       (function() {
@@ -202,8 +210,10 @@ $hasValidPic = isValidProfilePic($member['profile_pic']);
     <div class="brand">THE READING ROOM</div>
     <div>
         <a href="index.php">Browse Books</a>
-        <a href="my_loans.php">My Loans</a>
-        <?php if (in_array($_SESSION['role'] ?? '', ['Librarian', 'Cataloger', 'System Manager'], true)): ?>
+        <?php if (!$isStaff): ?>
+            <a href="my_loans.php">My Loans</a>
+        <?php endif; ?>
+        <?php if ($isStaff): ?>
             <a href="admin_dashboard.php" class="nav-staff-link">Staff Dashboard</a>
         <?php endif; ?>
         <a href="profile.php" class="nav-profile-pill" title="Edit Profile">
@@ -226,11 +236,11 @@ $hasValidPic = isValidProfilePic($member['profile_pic']);
         <div class="alert-banner alert-error"><?= htmlspecialchars($errorMsg) ?></div>
     <?php endif; ?>
 
-    <div class="profile-dashboard">
+    <div class="profile-dashboard<?= $isStaff ? ' is-staff-profile' : '' ?>">
         
         <!-- LEFT SIDEBAR -->
         <aside class="profile-sidebar">
-            <!-- Top: Avatar, Stats & Quick Avatars -->
+            <!-- Top: Avatar & Role -->
             <div class="profile-avatar-center">
                 <div class="profile-avatar-ring">
                     <?php if ($hasValidPic): ?>
@@ -244,23 +254,25 @@ $hasValidPic = isValidProfilePic($member['profile_pic']);
                 </div>
 
                 <h2 class="profile-sidebar-name"><?= htmlspecialchars($member['full_name']) ?></h2>
-                <p class="profile-sidebar-role"><?= htmlspecialchars($member['role']) ?> &bull; <?= htmlspecialchars($member['account_status']) ?></p>
+                <p class="profile-sidebar-role"><?= htmlspecialchars($displayRole) ?> &bull; <?= htmlspecialchars($member['account_status']) ?></p>
             </div>
 
-            <div class="profile-stats-row">
-                <div>
-                    <strong><?= count($borrowedBooks) ?></strong>
-                    <span>Borrowed</span>
+            <?php if (!$isStaff): ?>
+                <div class="profile-stats-row">
+                    <div>
+                        <strong><?= count($borrowedBooks) ?></strong>
+                        <span>Borrowed</span>
+                    </div>
+                    <div>
+                        <strong><?= count($wishlistBooks) ?></strong>
+                        <span>Wishlist</span>
+                    </div>
+                    <div>
+                        <strong><?= $slotsLeft ?></strong>
+                        <span>Slots Left</span>
+                    </div>
                 </div>
-                <div>
-                    <strong><?= count($wishlistBooks) ?></strong>
-                    <span>Wishlist</span>
-                </div>
-                <div>
-                    <strong><?= $slotsLeft ?></strong>
-                    <span>Slots Left</span>
-                </div>
-            </div>
+            <?php endif; ?>
 
             <div class="default-avatars-box">
                 <span class="default-avatars-label">Quick Avatars</span>
@@ -284,7 +296,7 @@ $hasValidPic = isValidProfilePic($member['profile_pic']);
 
             <hr class="profile-divider">
 
-            <!-- Middle: Edit Details Form (Right below Quick Avatars, no gap!) -->
+            <!-- Middle: Edit Details Form -->
             <form method="POST" action="profile.php" enctype="multipart/form-data" class="profile-sidebar-form">
                 <input type="file" id="profile_pic" name="profile_pic" accept="image/jpeg,image/png,image/webp" class="hidden" onchange="previewAvatar(event)">
                 <input type="hidden" id="selected_preset" name="selected_preset" value="">
@@ -332,104 +344,106 @@ $hasValidPic = isValidProfilePic($member['profile_pic']);
             </div>
         </aside>
 
-        <!-- RIGHT MAIN AREA -->
-        <section class="profile-main-content">
-            
-            <!-- Top Editorial Banner -->
-            <div class="profile-banner">
-                <div class="profile-banner-overlay">
-                    <span class="profile-banner-tag">MEMBER BOOKSHELF</span>
-                    <h1>MY READING ROOM</h1>
-                    <p>Manage your active loans, saved wishlist, and personal library profile.</p>
-                </div>
-            </div>
-
-            <!-- Middle Section: Currently Borrowed Books -->
-            <div class="profile-section-card">
-                <div class="profile-section-header">
-                    <h3>Currently Borrowed Books (<?= count($borrowedBooks) ?>/<?= $maxLimit ?>)</h3>
-                    <a href="my_loans.php" class="profile-view-all">Manage Loans &rarr;</a>
-                </div>
-
-                <?php if (empty($borrowedBooks)): ?>
-                    <p class="profile-empty-note">You haven't borrowed any books yet. <a href="index.php">Explore the catalog</a> to start reading!</p>
-                <?php else: ?>
-                    <div class="mini-book-grid">
-                        <?php foreach ($borrowedBooks as $book): ?>
-                            <div class="mini-book-card">
-                                <img class="mini-book-cover"
-                                     src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($book['isbn']) ?>-M.jpg"
-                                     alt="Cover">
-                                <h4 title="<?= htmlspecialchars($book['title']) ?>"><?= htmlspecialchars($book['title']) ?></h4>
-                                <p class="mini-book-author"><?= htmlspecialchars($book['author']) ?></p>
-                                <span class="mini-due-tag">Due: <?= date('M d', strtotime($book['due_date'])) ?></span>
-                                
-                                <div class="mini-book-actions">
-                                    <?php if ($book['loan_status'] === 'Issued' && !empty($book['pdf_path'])): ?>
-                                        <a href="read_book.php?book_id=<?= (int)$book['book_id'] ?>" class="btn mini-btn">Read</a>
-                                    <?php elseif ($book['loan_status'] === 'Pending'): ?>
-                                        <span class="mini-due-tag" style="margin:0;">Pending</span>
-                                    <?php endif; ?>
-
-                                    <?php if ($book['loan_status'] === 'Issued'): ?>
-                                        <form method="POST" action="return_action.php" style="flex:1;" onsubmit="return confirm('Return &quot;<?= htmlspecialchars(addslashes($book['title'])) ?>&quot; now?');">
-                                            <input type="hidden" name="borrowing_id" value="<?= (int)$book['borrowing_id'] ?>">
-                                            <button type="submit" class="btn mini-btn mini-btn-outline">Return</button>
-                                        </form>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+        <?php if (!$isStaff): ?>
+            <!-- RIGHT MAIN AREA (Members Only) -->
+            <section class="profile-main-content">
+                
+                <!-- Top Editorial Banner -->
+                <div class="profile-banner">
+                    <div class="profile-banner-overlay">
+                        <span class="profile-banner-tag">MEMBER BOOKSHELF</span>
+                        <h1>MY READING ROOM</h1>
+                        <p>Manage your active loans, saved wishlist, and personal library profile.</p>
                     </div>
-                <?php endif; ?>
-            </div>
-
-            <!-- Lower Section: User Wishlist -->
-            <div class="profile-section-card" style="flex: 1;">
-                <div class="profile-section-header">
-                    <h3>My Wishlist (<?= count($wishlistBooks) ?>)</h3>
-                    <a href="index.php" class="profile-view-all">+ Add More Books</a>
                 </div>
 
-                <?php if (empty($wishlistBooks)): ?>
-                    <p class="profile-empty-note">Your wishlist is empty. Click the heart icon on any book in the catalog to save it here.</p>
-                <?php else: ?>
-                    <div class="mini-book-grid">
-                        <?php foreach ($wishlistBooks as $wBook): ?>
-                            <?php $isAvail = ($wBook['available_copies'] > 0 && !empty($wBook['pdf_path'])); ?>
-                            <div class="mini-book-card">
-                                <img class="mini-book-cover"
-                                     src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($wBook['isbn']) ?>-M.jpg"
-                                     alt="Cover">
-                                <h4 title="<?= htmlspecialchars($wBook['title']) ?>"><?= htmlspecialchars($wBook['title']) ?></h4>
-                                <p class="mini-book-author"><?= htmlspecialchars($wBook['author']) ?></p>
-                                
-                                <?php if ($isAvail): ?>
-                                    <span class="badge available" style="font-size: 0.6rem; padding: 1px 5px; margin: 2px 0;">Available</span>
-                                <?php else: ?>
-                                    <span class="badge unavailable" style="font-size: 0.6rem; padding: 1px 5px; margin: 2px 0;">Unavailable</span>
-                                <?php endif; ?>
+                <!-- Middle Section: Currently Borrowed Books -->
+                <div class="profile-section-card">
+                    <div class="profile-section-header">
+                        <h3>Currently Borrowed Books (<?= count($borrowedBooks) ?>/<?= $maxLimit ?>)</h3>
+                        <a href="my_loans.php" class="profile-view-all">Manage Loans &rarr;</a>
+                    </div>
 
-                                <div class="mini-book-actions">
+                    <?php if (empty($borrowedBooks)): ?>
+                        <p class="profile-empty-note">You haven't borrowed any books yet. <a href="index.php">Explore the catalog</a> to start reading!</p>
+                    <?php else: ?>
+                        <div class="mini-book-grid">
+                            <?php foreach ($borrowedBooks as $book): ?>
+                                <div class="mini-book-card">
+                                    <img class="mini-book-cover"
+                                         src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($book['isbn']) ?>-M.jpg"
+                                         alt="Cover">
+                                    <h4 title="<?= htmlspecialchars($book['title']) ?>"><?= htmlspecialchars($book['title']) ?></h4>
+                                    <p class="mini-book-author"><?= htmlspecialchars($book['author']) ?></p>
+                                    <span class="mini-due-tag">Due: <?= date('M d', strtotime($book['due_date'])) ?></span>
+                                    
+                                    <div class="mini-book-actions">
+                                        <?php if ($book['loan_status'] === 'Issued' && !empty($book['pdf_path'])): ?>
+                                            <a href="read_book.php?book_id=<?= (int)$book['book_id'] ?>" class="btn mini-btn">Read</a>
+                                        <?php elseif ($book['loan_status'] === 'Pending'): ?>
+                                            <span class="mini-due-tag" style="margin:0;">Pending</span>
+                                        <?php endif; ?>
+
+                                        <?php if ($book['loan_status'] === 'Issued'): ?>
+                                            <form method="POST" action="return_action.php" style="flex:1;" onsubmit="return confirm('Return &quot;<?= htmlspecialchars(addslashes($book['title'])) ?>&quot; now?');">
+                                                <input type="hidden" name="borrowing_id" value="<?= (int)$book['borrowing_id'] ?>">
+                                                <button type="submit" class="btn mini-btn mini-btn-outline">Return</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- Lower Section: User Wishlist -->
+                <div class="profile-section-card" style="flex: 1;">
+                    <div class="profile-section-header">
+                        <h3>My Wishlist (<?= count($wishlistBooks) ?>)</h3>
+                        <a href="index.php" class="profile-view-all">+ Add More Books</a>
+                    </div>
+
+                    <?php if (empty($wishlistBooks)): ?>
+                        <p class="profile-empty-note">Your wishlist is empty. Click the heart icon on any book in the catalog to save it here.</p>
+                    <?php else: ?>
+                        <div class="mini-book-grid">
+                            <?php foreach ($wishlistBooks as $wBook): ?>
+                                <?php $isAvail = ($wBook['available_copies'] > 0 && !empty($wBook['pdf_path'])); ?>
+                                <div class="mini-book-card">
+                                    <img class="mini-book-cover"
+                                         src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($wBook['isbn']) ?>-M.jpg"
+                                         alt="Cover">
+                                    <h4 title="<?= htmlspecialchars($wBook['title']) ?>"><?= htmlspecialchars($wBook['title']) ?></h4>
+                                    <p class="mini-book-author"><?= htmlspecialchars($wBook['author']) ?></p>
+                                    
                                     <?php if ($isAvail): ?>
-                                        <form method="POST" action="borrow_action.php" style="flex:1;">
-                                            <input type="hidden" name="book_id" value="<?= (int)$wBook['book_id'] ?>">
-                                            <button type="submit" class="btn mini-btn">Borrow</button>
-                                        </form>
+                                        <span class="badge available" style="font-size: 0.6rem; padding: 1px 5px; margin: 2px 0;">Available</span>
+                                    <?php else: ?>
+                                        <span class="badge unavailable" style="font-size: 0.6rem; padding: 1px 5px; margin: 2px 0;">Unavailable</span>
                                     <?php endif; ?>
-                                    <form method="POST" action="wishlist_action.php">
-                                        <input type="hidden" name="book_id" value="<?= (int)$wBook['book_id'] ?>">
-                                        <input type="hidden" name="redirect" value="profile.php">
-                                        <button type="submit" class="btn mini-btn mini-btn-danger" title="Remove from Wishlist">&times;</button>
-                                    </form>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endif; ?>
-            </div>
 
-        </section>
+                                    <div class="mini-book-actions">
+                                        <?php if ($isAvail): ?>
+                                            <form method="POST" action="borrow_action.php" style="flex:1;">
+                                                <input type="hidden" name="book_id" value="<?= (int)$wBook['book_id'] ?>">
+                                                <button type="submit" class="btn mini-btn">Borrow</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <form method="POST" action="wishlist_action.php">
+                                            <input type="hidden" name="book_id" value="<?= (int)$wBook['book_id'] ?>">
+                                            <input type="hidden" name="redirect" value="profile.php">
+                                            <button type="submit" class="btn mini-btn mini-btn-danger" title="Remove from Wishlist">&times;</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+            </section>
+        <?php endif; ?>
     </div>
 </main>
 

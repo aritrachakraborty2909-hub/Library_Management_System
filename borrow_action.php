@@ -1,9 +1,16 @@
 <?php
 require_once 'config/db.php';
 
-// Security Guard: Only logged-in users can borrow books
+// Security Guard 1: Only logged-in users can borrow books
 if (!isset($_SESSION['member_id'])) {
     header("Location: login.php");
+    exit;
+}
+
+// Security Guard 2: Staff accounts (Cataloger / Librarian / System Manager) are view-only in the catalog
+$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
+if (in_array($_SESSION['role'] ?? '', $staffRoles, true)) {
+    header("Location: index.php");
     exit;
 }
 
@@ -19,9 +26,9 @@ try {
     // Start an atomic PostgreSQL transaction so stock decrement & loan creation succeed or fail together
     $pdo->beginTransaction();
 
-    // 1. Check Member Account Status & Borrowing Limit (D1 Member Store)
+    // 1. Check Member Account Status, Role & Borrowing Limit (D1 Member Store)
     $memberStmt = $pdo->prepare("
-        SELECT account_status, max_borrowing_limit 
+        SELECT role, account_status, max_borrowing_limit 
         FROM members 
         WHERE member_id = :mid
         FOR UPDATE
@@ -29,7 +36,13 @@ try {
     $memberStmt->execute([':mid' => $memberId]);
     $member = $memberStmt->fetch();
 
-    if (!$member || $member['account_status'] !== 'Active') {
+    if (!$member || in_array($member['role'] ?? '', $staffRoles, true)) {
+        $pdo->rollBack();
+        header("Location: index.php");
+        exit;
+    }
+
+    if ($member['account_status'] !== 'Active') {
         $pdo->rollBack();
         header("Location: my_loans.php?err=" . urlencode("Your account is not active or is locked due to overdue items."));
         exit;

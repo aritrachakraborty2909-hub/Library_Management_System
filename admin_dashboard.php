@@ -1,12 +1,9 @@
 <?php
 // admin_dashboard.php
-// Staff Workbench: Add Books + PDF Upload, Link/Replace PDFs on Existing Books, Soft-Delete, Member Approvals & Returns
+// Staff Workbench: Add Books + PDF Upload, Link/Replace PDFs on Existing Books & Soft-Delete
 session_start();
 require_once __DIR__ . '/config/db.php';
 require_once __DIR__ . '/services/CatalogueService.php';
-if (file_exists(__DIR__ . '/services/LibrarianService.php')) {
-    require_once __DIR__ . '/services/LibrarianService.php';
-}
 
 // 1. Verify Staff Authorization
 $staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
@@ -17,7 +14,6 @@ if (!isset($_SESSION['member_id']) || !in_array($_SESSION['role'] ?? '', $staffR
 
 $role             = $_SESSION['role'];
 $catalogueService = new CatalogueService($pdo);
-$librarianService = class_exists('LibrarianService') ? new LibrarianService($pdo) : null;
 
 $flashMessage = '';
 $flashType    = '';
@@ -56,96 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $flashMessage = $isDeleted ? "Book soft-deleted from public catalog." : "Book restored to public catalog.";
                 $flashType = 'success';
                 break;
-
-            case 'approve_member':
-                $targetId = (int) ($_POST['member_id'] ?? 0);
-                if ($librarianService && method_exists($librarianService, 'approveMember')) {
-                    $librarianService->approveMember($targetId);
-                } else {
-                    $stmt = $pdo->prepare("
-                        UPDATE members 
-                        SET account_status = 'Active', 
-                            expiry_date = COALESCE(expiry_date, CURRENT_DATE + INTERVAL '1 year')
-                        WHERE member_id = :member_id
-                    ");
-                    $stmt->execute([':member_id' => $targetId]);
-                }
-                $flashMessage = "Member account approved and activated.";
-                $flashType = 'success';
-                break;
-
-            case 'reject_member':
-                $targetId = (int) ($_POST['member_id'] ?? 0);
-                if ($librarianService && method_exists($librarianService, 'rejectMember')) {
-                    $librarianService->rejectMember($targetId);
-                } else {
-                    $stmt = $pdo->prepare("
-                        UPDATE members 
-                        SET account_status = 'Rejected' 
-                        WHERE member_id = :member_id
-                    ");
-                    $stmt->execute([':member_id' => $targetId]);
-                }
-                $flashMessage = "Member registration rejected.";
-                $flashType = 'success';
-                break;
-
-            case 'return_book':
-                $borrowingId = (int) ($_POST['borrowing_id'] ?? 0);
-                if ($librarianService && method_exists($librarianService, 'processBookReturn')) {
-                    $librarianService->processBookReturn($borrowingId);
-                } else {
-                    // Atomic Module 0.3.3 Book Return Transaction
-                    $pdo->beginTransaction();
-                    try {
-                        $loanStmt = $pdo->prepare("
-                            SELECT borrowing_id, book_id, due_date 
-                            FROM borrowings 
-                            WHERE borrowing_id = :borrowing_id AND loan_status = 'Issued' 
-                            FOR UPDATE
-                        ");
-                        $loanStmt->execute([':borrowing_id' => $borrowingId]);
-                        $loan = $loanStmt->fetch(PDO::FETCH_ASSOC);
-
-                        if (!$loan) {
-                            throw new RuntimeException('Active loan record not found or already returned.');
-                        }
-
-                        // Calculate final overdue fine (₹10/day)
-                        $today = new DateTimeImmutable('today');
-                        $dueDate = new DateTimeImmutable(date('Y-m-d', strtotime($loan['due_date'])));
-                        $fine = ($today > $dueDate) ? ($dueDate->diff($today)->days * 10) : 0;
-
-                        $updLoan = $pdo->prepare("
-                            UPDATE borrowings 
-                            SET loan_status = 'Returned', 
-                                return_date = CURRENT_DATE, 
-                                fine_amount = :fine 
-                            WHERE borrowing_id = :borrowing_id
-                        ");
-                        $updLoan->execute([
-                            ':fine'         => $fine,
-                            ':borrowing_id' => $borrowingId,
-                        ]);
-
-                        $updBook = $pdo->prepare("
-                            UPDATE books 
-                            SET available_copies = LEAST(total_copies, available_copies + 1) 
-                            WHERE book_id = :book_id
-                        ");
-                        $updBook->execute([':book_id' => $loan['book_id']]);
-
-                        $pdo->commit();
-                    } catch (Throwable $txErr) {
-                        if ($pdo->inTransaction()) {
-                            $pdo->rollBack();
-                        }
-                        throw $txErr;
-                    }
-                }
-                $flashMessage = "Book returned and available copies updated.";
-                $flashType = 'success';
-                break;
         }
     } catch (Throwable $e) {
         $flashMessage = 'Error: ' . $e->getMessage();
@@ -162,24 +68,6 @@ $nextIndexMap = [];
 foreach (array_keys(CatalogueService::GENRE_PREFIXES) as $genreName) {
     $nextIndexMap[$genreName] = $catalogueService->generateNextBookIndex($genreName);
 }
-
-// Pending members (D1)
-$pendingMembers = $pdo->query("
-    SELECT member_id, full_name, email, phone_number, created_at 
-    FROM members 
-    WHERE account_status = 'Pending' 
-    ORDER BY created_at ASC
-")->fetchAll(PDO::FETCH_ASSOC);
-
-// Active Issued Loans (D3)
-$activeLoans = $pdo->query("
-    SELECT br.borrowing_id, br.issue_date, br.due_date, m.full_name, m.email, bk.book_index, bk.title
-    FROM borrowings br
-    JOIN members m ON br.member_id = m.member_id
-    JOIN books bk ON br.book_id = bk.book_id
-    WHERE br.loan_status = 'Issued' AND br.return_date IS NULL
-    ORDER BY br.due_date ASC
-")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -187,7 +75,15 @@ $activeLoans = $pdo->query("
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Workbench — The Reading Room</title>
-    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/style.css?v=13">
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('rr_theme') || 'default';
+        if (savedTheme !== 'default') {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+      })();
+    </script>
 </head>
 <body>
 
@@ -195,9 +91,8 @@ $activeLoans = $pdo->query("
         <a href="index.php" class="brand">The Reading Room — Staff Workbench</a>
         <div class="nav-links">
             <a href="index.php">Public Catalog</a>
-            <a href="my_loans.php">My Loans</a>
-            <a href="admin_dashboard.php" class="active">Workbench (<?= htmlspecialchars($role) ?>)</a>
-            <a href="index.php">Logout</a>
+            <a href="admin_dashboard.php" class="active">Workbench (<?= htmlspecialchars($role === 'Librarian' ? 'Cataloger' : $role) ?>)</a>
+            <a href="index.php?action=logout">Logout</a>
         </div>
     </nav>
 
@@ -351,81 +246,6 @@ $activeLoans = $pdo->query("
                 </table>
             </div>
         </section>
-
-        <!-- SECTION 3: PENDING MEMBER APPROVALS & ACTIVE RETURNS -->
-        <div class="admin-two-col-grid">
-            <section class="card">
-                <h2>Pending Member Approvals (<?= count($pendingMembers) ?>)</h2>
-                <?php if (empty($pendingMembers)): ?>
-                    <p class="no-records-msg">No pending registrations.</p>
-                <?php else: ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Name &amp; Email</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($pendingMembers as $pm): ?>
-                                <tr>
-                                    <td>
-                                        <strong><?= htmlspecialchars($pm['full_name']) ?></strong><br>
-                                        <span class="text-muted-sm"><?= htmlspecialchars($pm['email']) ?></span>
-                                    </td>
-                                    <td>
-                                        <form method="POST" class="form-inline">
-                                            <input type="hidden" name="action" value="approve_member">
-                                            <input type="hidden" name="member_id" value="<?= (int) $pm['member_id'] ?>">
-                                            <button type="submit" class="btn btn-sm">Approve</button>
-                                        </form>
-                                        <form method="POST" class="form-inline">
-                                            <input type="hidden" name="action" value="reject_member">
-                                            <input type="hidden" name="member_id" value="<?= (int) $pm['member_id'] ?>">
-                                            <button type="submit" class="btn btn-danger btn-sm">Reject</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </section>
-
-            <section class="card">
-                <h2>Active Issued Loans (<?= count($activeLoans) ?>)</h2>
-                <?php if (empty($activeLoans)): ?>
-                    <p class="no-records-msg">No books currently issued.</p>
-                <?php else: ?>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Book</th>
-                                <th>Borrower</th>
-                                <th>Due</th>
-                                <th>Return</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($activeLoans as $al): ?>
-                                <tr>
-                                    <td><code><?= htmlspecialchars($al['book_index']) ?></code> <?= htmlspecialchars($al['title']) ?></td>
-                                    <td><?= htmlspecialchars($al['full_name']) ?></td>
-                                    <td><?= htmlspecialchars(date('M d', strtotime($al['due_date']))) ?></td>
-                                    <td>
-                                        <form method="POST">
-                                            <input type="hidden" name="action" value="return_book">
-                                            <input type="hidden" name="borrowing_id" value="<?= (int) $al['borrowing_id'] ?>">
-                                            <button type="submit" class="btn btn-sm">Return</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                <?php endif; ?>
-            </section>
-        </div>
 
     </main>
 
