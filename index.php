@@ -28,7 +28,6 @@ if (isset($_SESSION['member_id'])) {
     $wishlistedIds = array_map('intval', $wStmt->fetchAll(PDO::FETCH_COLUMN));
 
     // Active Borrowed Book IDs (only for THIS logged-in user/admin)
-    // Adjust 'loans' / 'return_date IS NULL' if your schema uses status = 'Borrowed' or 'Active'
     $bStmt = $pdo->prepare("
         SELECT DISTINCT book_id 
         FROM borrowings 
@@ -77,7 +76,6 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     <title>The Reading Room | Library Management System</title>
     <link rel="stylesheet" href="assets/style.css?v=13">
     <script>
-      // Apply saved theme before paint to prevent flash
       (function() {
         const savedTheme = localStorage.getItem('rr_theme') || 'default';
         if (savedTheme !== 'default') {
