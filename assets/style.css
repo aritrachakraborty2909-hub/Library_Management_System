@@ -1570,12 +1570,9 @@ body.reader-body {
   font-weight: bold;
 }
 
-<<<<<<< Updated upstream
-=======
 /* --------------------------------------------------------------------------
 16. Responsive Media Queries
    -------------------------------------------------------------------------- */
->>>>>>> Stashed changes
 @media (max-width: 980px) {
   .book-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -1690,7 +1687,6 @@ body.reader-body {
     flex-direction: column;
     gap: 12px;
   }
-<<<<<<< Updated upstream
 }
 
 .login-panel {
@@ -2145,7 +2141,7 @@ body.reader-body {
   line-height: 1.15;
   color: var(--espresso-dark, #152a45);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  /* -webkit-line-clamp: 2; */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -2356,12 +2352,4 @@ body.reader-body {
   background-color: transparent !important;
   color: #38bdf8 !important;
   border-color: #38bdf8 !important;
-=======
-
-  .login-panel {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
->>>>>>> Stashed changes
 }

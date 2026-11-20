@@ -8,13 +8,9 @@ if (isset($_SESSION['member_id'])) {
     exit;
 }
 
-<<<<<<< Updated upstream
-$error = '';$success = '';
-=======
 $error = $_SESSION['error'] ?? '';
 $success = $_SESSION['success'] ?? '';
 unset($_SESSION['error'], $_SESSION['success']);
->>>>>>> Stashed changes
 
 // Check URL flags for registration or password reset completion
 if (isset($_GET['registered'])) {$success = 'Account created! Log in to access your bookshelf.';
@@ -32,35 +28,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         exit;
     } else {
-<<<<<<< Updated upstream
-        $error =$result['message'];
-=======
         $error = $result['message'];
->>>>>>> Stashed changes
     }
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
-<<<<<<< Updated upstream
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Log In | The Reading Room</title>
-    <link rel="stylesheet" href="assets/style.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
-  </head>
-  <body>
-    <div class="reading-room">
-      <!-- Left Editorial Panel (Login Copy) -->
-      <aside class="editorial">
-        <header class="brand">
-          <a href="index.php" class="brand-link">
-            <strong>THE READING ROOM</strong><br />
-            <span>YOUR NEXT CHAPTER AWAITS</span>
-          </a>
-        </header>
-=======
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -83,7 +56,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <h1>A world of stories.<br>A place for you.</h1>
           <p class="intro-copy">Step inside. Find your next favourite book, and pick up right where you left off.</p>
         </div>
->>>>>>> Stashed changes
 
         <div class="shelves">
           <h2>FROM THE SHELVES</h2>
@@ -119,7 +91,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </footer>
     </aside>
 
-<<<<<<< Updated upstream
       <!-- Right Account Panel: Login View -->
       <main class="account-panel">
         <div class="login-panel">
@@ -131,14 +102,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <p class="form-eyebrow">YOUR PERSONAL BOOKSHELF</p>
           <h2>Welcome back.</h2>
           <p class="form-intro">Log in to continue your reading journey.</p>
-=======
-    <!-- Right Account Panel -->
-    <main class="account-panel">
-      <div class="login-panel">
-        <span class="page-crumb">THE READING ROOM &nbsp;/&nbsp; MEMBER ACCESS</span>
-        <span class="page-crumb2"><a href="index.php">&larr; BACK TO DASHBOARD</a></span>
-      </div>
->>>>>>> Stashed changes
 
       <div class="account-form">
         <!-- Top Red Box Area: Continue with Google Icon Button -->
@@ -170,47 +133,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <div class="login-fields">
             <label class="field">
               <span>Email ID</span>
-<<<<<<< Updated upstream
-              <input type="email" name="email" placeholder="you@example.com" required />
-            </label>
-
-            <div class="field">
-              <span>Password</span>
-              <div class="password-wrapper">
-                <input
-                  type="password"
-                  id="login-password"
-                  name="password"
-                  placeholder="Enter your password"
-                  required
-                />
-                <button
-                  type="button"
-                  class="toggle-password-btn"
-                  onclick="togglePassword('login-password', this)"
-                  aria-label="Show password"
-                >
-                  <!-- Open Eye SVG Icon (Hidden when masked) -->
-                  <svg class="eye-open hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                    <circle cx="12" cy="12" r="3"></circle>
-                  </svg>
-                  <!-- Closed/Slashed Eye SVG Icon (Shown by default when masked) -->
-                  <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
-                    <line x1="1" y1="1" x2="23" y2="23"></line>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-          
-          <button class="primary-button" type="submit">Log in</button>
-          
-          <div class="login-links">
-            <a href="register.php">New user? Create an account</a>
-            <a href="
-=======
               <input type="email" name="email" placeholder="you@example.com" required>
             </label>
 
@@ -265,4 +187,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   </script>
 </body>
 </html>
->>>>>>> Stashed changes

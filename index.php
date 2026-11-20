@@ -32,7 +32,6 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Reading Room | Library Management System</title>
-<<<<<<< Updated upstream
     <link rel="stylesheet" href="assets/style.css?v=9">
     <script>
       // Apply saved theme before paint to prevent flash
@@ -43,9 +42,6 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
         }
       })();
     </script>
-=======
-    <link rel="stylesheet" href="assets/style.css">
->>>>>>> Stashed changes
 </head>
 <body>
 
