@@ -24,7 +24,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Reading Room | Library Management System</title>
-    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/style.css?v=2">
 </head>
 <body>
 
@@ -94,6 +94,9 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                         ($book['book_index'] ?? '') . ' ' .
                         ($book['publication_year'] ?? '')
                     );
+
+                    // Book is only available if copies remain AND a PDF is attached
+                    $isBookAvailable = ($book['available_copies'] > 0 && !empty($book['pdf_path']));
                 ?>
                 <div class="book-card" data-search="<?= htmlspecialchars($searchBlob) ?>">
                     <div>
@@ -112,23 +115,21 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                             ISBN: <?= htmlspecialchars($book['isbn']) ?>
                         </p>
 
-                        <?php if ($book['available_copies'] > 0): ?>
-                        <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Librarian'): ?>
-                            <span class="badge available">Available (<?= (int)$book['available_copies'] ?>/<?= (int)$book['total_copies'] ?>)</span>
+                        <?php if ($isBookAvailable): ?>
+                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Librarian'): ?>
+                                <span class="badge available">Available (<?= (int)$book['available_copies'] ?>/<?= (int)$book['total_copies'] ?>)</span>
+                            <?php endif; ?>
                         <?php else: ?>
-                            <span class="badge available">Available</span>
-                        <?php endif; ?>
-                        <?php else: ?>
-                            <span class="badge unavailable">Checked Out</span>
+                            <span class="badge unavailable">Currently Unavailable</span>
                         <?php endif; ?>
                     </div>
 
-                    <?php if (isset($_SESSION['member_id']) && $book['available_copies'] > 0): ?>
+                    <?php if (isset($_SESSION['member_id']) && $isBookAvailable): ?>
                         <form method="POST" action="borrow_action.php" class="borrow-form">
                             <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
                             <button type="submit" class="btn btn-full-width">Borrow Book</button>
                         </form>
-                    <?php elseif (!isset($_SESSION['member_id'])): ?>
+                    <?php elseif (!isset($_SESSION['member_id']) && $isBookAvailable): ?>
                         <a href="login.php" class="btn btn-login-borrow">Log in to Borrow</a>
                     <?php endif; ?>
                 </div>
