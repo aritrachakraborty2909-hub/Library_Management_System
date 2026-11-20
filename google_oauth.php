@@ -4,13 +4,27 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 require_once 'config/db.php';
 
-// =========================================================================
-// 1. GOOGLE OAUTH 2.0 CONFIGURATION
-// Replace these with your Google Cloud Console OAuth 2.0 Web Client credentials
-// =========================================================================
-define('GOOGLE_CLIENT_ID', '139938837787-r8npjmi74f1j9tcv627dqqin2ol3v1rf.apps.googleusercontent.com');
-define('GOOGLE_CLIENT_SECRET', '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');
-define('GOOGLE_REDIRECT_URI', 'http://localhost/Library_Management_System/google_oauth.php');
+$envPath = __DIR__ . '/.env';
+if (file_exists($envPath)) {
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || str_starts_with($line, '#') || !str_contains($line, '=')) {
+            continue;
+        }
+        [$key, $value] = explode('=', $line, 2);
+        $key   = trim($key);
+        $value = trim($value, " \t\n\r\0\x0B\"'");
+        if ($key !== '' && getenv($key) === false) {
+            putenv("{$key}={$value}");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+
+$clientId     = $_ENV['GOOGLE_CLIENT_ID']     ?? getenv('GOOGLE_CLIENT_ID')     ?: '';
+$clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
+$redirectUri  = $_ENV['GOOGLE_REDIRECT_URI']  ?? getenv('GOOGLE_REDIRECT_URI')  ?: 'http://localhost/Library_Management_System/lrminsul/google_oauth.php';
 
 // Helper function for clean redirects back to login.php with an error message
 function failGoogleAuth(string $message): void
@@ -20,9 +34,10 @@ function failGoogleAuth(string $message): void
     exit;
 }
 
-// =========================================================================
-// 2. STEP A: REDIRECT USER TO GOOGLE CONSENT SCREEN (No ?code yet)
-// =========================================================================
+if ($clientId === '' || $clientSecret === '') {
+    failGoogleAuth('Google OAuth is not configured on this server. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your .env file.');
+}
+
 if (!isset($_GET['code'])) {
     if (isset($_GET['error'])) {
         failGoogleAuth('Google sign-in was cancelled or denied.');
@@ -33,8 +48,8 @@ if (!isset($_GET['code'])) {
     $_SESSION['google_oauth_state'] = $state;
 
     $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
-        'client_id'     => GOOGLE_CLIENT_ID,
-        'redirect_uri'  => GOOGLE_REDIRECT_URI,
+        'client_id'     => $clientId,
+        'redirect_uri'  => $redirectUri,
         'response_type' => 'code',
         'scope'         => 'openid email profile',
         'state'         => $state,
@@ -45,9 +60,6 @@ if (!isset($_GET['code'])) {
     exit;
 }
 
-// =========================================================================
-// 3. STEP B: VERIFY STATE & EXCHANGE AUTHORIZATION CODE FOR ACCESS TOKEN
-// =========================================================================
 $returnedState = $_GET['state'] ?? '';
 $expectedState = $_SESSION['google_oauth_state'] ?? '';
 unset($_SESSION['google_oauth_state']);
@@ -63,9 +75,9 @@ curl_setopt_array($tokenCh, [
     CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
     CURLOPT_POSTFIELDS     => http_build_query([
         'code'          => $_GET['code'],
-        'client_id'     => GOOGLE_CLIENT_ID,
-        'client_secret' => GOOGLE_CLIENT_SECRET,
-        'redirect_uri'  => GOOGLE_REDIRECT_URI,
+        'client_id'     => $clientId,
+        'client_secret' => $clientSecret,
+        'redirect_uri'  => $redirectUri,
         'grant_type'    => 'authorization_code'
     ])
 ]);
@@ -80,9 +92,6 @@ if ($tokenHttpCode !== 200 || empty($tokenData['access_token'])) {
     failGoogleAuth('Could not verify your Google login token. Check your Client ID, Secret, and Redirect URI.');
 }
 
-// =========================================================================
-// 4. STEP C: FETCH VERIFIED USER PROFILE FROM GOOGLE
-// =========================================================================
 $userCh = curl_init('https://www.googleapis.com/oauth2/v3/userinfo');
 curl_setopt_array($userCh, [
     CURLOPT_RETURNTRANSFER => true,
@@ -103,9 +112,6 @@ $email     = strtolower(trim($googleUser['email']));
 $fullName  = trim($googleUser['name'] ?? explode('@', $email)[0]);
 $avatarUrl = trim($googleUser['picture'] ?? '');
 
-// =========================================================================
-// 5. STEP D: FIND OR CREATE MEMBER IN NEON POSTGRESQL (`members` TABLE)
-// =========================================================================
 try {
     $stmt = $pdo->prepare("
         SELECT member_id, full_name, email, role, account_status, profile_pic 
@@ -117,13 +123,10 @@ try {
     $member = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($member) {
-        // Block locked or rejected accounts just like standard login
         if (in_array($member['account_status'], ['Locked', 'Rejected'], true)) {
             failGoogleAuth('Your library account is currently ' . strtolower($member['account_status']) . '. Please contact the librarian.');
         }
 
-        // Auto-activate Pending accounts since Google verified their email,
-        // and sync their Google profile picture if they don't already have one
         $updatedPic = !empty($member['profile_pic']) ? $member['profile_pic'] : ($avatarUrl !== '' ? $avatarUrl : null);
 
         if ($member['account_status'] === 'Pending' || (empty($member['profile_pic']) && $updatedPic !== null)) {
@@ -146,8 +149,6 @@ try {
         $_SESSION['profile_pic'] = $updatedPic ?? '';
 
     } else {
-        // Auto-register new Google user as an Active 'Member'
-        // Generate a random password_hash to satisfy NOT NULL constraint on `members.password_hash`
         $randomPasswordHash = password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT);
 
         $ins = $pdo->prepare("
@@ -171,7 +172,6 @@ try {
         $_SESSION['profile_pic'] = $newMember['profile_pic'] ?? '';
     }
 
-    // Redirect based on role (matching your login.php routing)
     if ($_SESSION['role'] === 'Librarian') {
         header("Location: librarian_dashboard.php");
     } else {
