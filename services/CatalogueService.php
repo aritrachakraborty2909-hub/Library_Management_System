@@ -28,7 +28,8 @@ class CatalogueService
         'Economics'          => 'EC',
         'Mythology'          => 'MT',
         'Poetry & Drama'     => 'PD',
-        'Sports'             => 'SP'
+        'Sports'             => 'SP',
+        'Romance'            => 'RM'
     ];
 
     public function __construct(PDO $pdo)
