@@ -482,6 +482,23 @@ img {
   color: var(--espresso-dark);
 }
 
+.btn-borrowed,
+.btn-borrowed:hover {
+  background-color: var(--success-bg);
+  color: var(--success-green);
+  border: 1px solid #95d5b2;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+
+:root[data-theme="dark"] .btn-borrowed,
+:root[data-theme="dark"] .btn-borrowed:hover {
+  background-color: rgba(30, 96, 73, 0.25);
+  color: #6ee7b7;
+  border-color: #1e6049;
+}
+
 /* --------------------------------------------------------------------------
 8. Cards & Content Panels (Unified Reading Room Aesthetics)
    -------------------------------------------------------------------------- */
@@ -2134,6 +2151,7 @@ body.reader-body {
   color: var(--espresso-dark, #152a45);
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

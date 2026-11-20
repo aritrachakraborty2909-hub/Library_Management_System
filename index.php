@@ -15,12 +15,29 @@ $searchQuery = trim($_GET['q'] ?? '');
 // Call Module 0.2.1
 $books = searchBooks($pdo, $searchQuery);
 
-// Fetch logged-in user's wishlist book IDs
-$wishlistedIds = [];
+// Fetch logged-in user's wishlist book IDs & active borrowed book IDs
+$wishlistedIds      = [];
+$activeBorrowedIds  = [];
+
 if (isset($_SESSION['member_id'])) {
+    $currentMemberId = (int)$_SESSION['member_id'];
+
+    // Wishlist IDs
     $wStmt = $pdo->prepare("SELECT book_id FROM wishlist WHERE member_id = :mid");
-    $wStmt->execute([':mid' => (int)$_SESSION['member_id']]);
+    $wStmt->execute([':mid' => $currentMemberId]);
     $wishlistedIds = array_map('intval', $wStmt->fetchAll(PDO::FETCH_COLUMN));
+
+    // Active Borrowed Book IDs (only for THIS logged-in user/admin)
+    // Adjust 'loans' / 'return_date IS NULL' if your schema uses status = 'Borrowed' or 'Active'
+    $bStmt = $pdo->prepare("
+        SELECT DISTINCT book_id 
+        FROM borrowings 
+        WHERE member_id = :mid 
+          AND return_date IS NULL
+          AND loan_status IN ('Pending', 'Issued')
+    ");
+    $bStmt->execute([':mid' => $currentMemberId]);
+    $activeBorrowedIds = array_map('intval', $bStmt->fetchAll(PDO::FETCH_COLUMN));
 }
 
 // Group books dynamically by Genre and grab 1 featured cover ISBN per genre
@@ -58,7 +75,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Reading Room | Library Management System</title>
-    <link rel="stylesheet" href="assets/style.css?v=12">
+    <link rel="stylesheet" href="assets/style.css?v=13">
     <script>
       // Apply saved theme before paint to prevent flash
       (function() {
@@ -196,6 +213,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                 <div class="book-grid catalog-4col" id="book-grid">
                     <?php foreach ($books as $book): ?>
                         <?php
+                            $bookId     = (int)$book['book_id'];
                             $rawGenre   = trim($book['genre_category'] ?? 'General');
                             $searchBlob = strtolower(
                                 ($book['title'] ?? '') . ' ' .
@@ -207,8 +225,9 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                                 ($book['publication_year'] ?? '')
                             );
 
-                            $isBookAvailable = ($book['available_copies'] > 0 && !empty($book['pdf_path']));
-                            $inWishlist      = in_array((int)$book['book_id'], $wishlistedIds, true);
+                            $isBookAvailable  = ($book['available_copies'] > 0 && !empty($book['pdf_path']));
+                            $inWishlist       = in_array($bookId, $wishlistedIds, true);
+                            $isBorrowedByUser = in_array($bookId, $activeBorrowedIds, true);
                         ?>
                         <div class="book-card"
                              data-search="<?= htmlspecialchars($searchBlob) ?>"
@@ -219,7 +238,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                             <div style="position: relative;">
                                 <?php if (isset($_SESSION['member_id'])): ?>
                                     <form method="POST" action="wishlist_action.php" class="wishlist-heart-form">
-                                        <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
+                                        <input type="hidden" name="book_id" value="<?= $bookId ?>">
                                         <input type="hidden" name="redirect" value="index.php">
                                         <button type="submit" class="wishlist-heart-btn <?= $inWishlist ? 'is-saved' : '' ?>" title="<?= $inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' ?>">
                                             <?= $inWishlist ? '&#9829;' : '&#9825;' ?>
@@ -250,12 +269,18 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                                 <?php endif; ?>
                             </div>
 
-                            <?php if (isset($_SESSION['member_id']) && $isBookAvailable): ?>
-                                <form method="POST" action="borrow_action.php" class="borrow-form">
-                                    <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
-                                    <button type="submit" class="btn btn-full-width">Borrow Book</button>
-                                </form>
-                            <?php elseif (!isset($_SESSION['member_id']) && $isBookAvailable): ?>
+                            <?php if (isset($_SESSION['member_id'])): ?>
+                                <?php if ($isBorrowedByUser): ?>
+                                    <div class="borrow-form">
+                                        <button type="button" class="btn btn-full-width btn-borrowed" disabled>Borrowed</button>
+                                    </div>
+                                <?php elseif ($isBookAvailable): ?>
+                                    <form method="POST" action="borrow_action.php" class="borrow-form">
+                                        <input type="hidden" name="book_id" value="<?= $bookId ?>">
+                                        <button type="submit" class="btn btn-full-width">Borrow Book</button>
+                                    </form>
+                                <?php endif; ?>
+                            <?php elseif ($isBookAvailable): ?>
                                 <a href="login.php" class="btn btn-login-borrow">Log in to Borrow</a>
                             <?php endif; ?>
                         </div>
