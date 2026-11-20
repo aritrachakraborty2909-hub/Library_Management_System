@@ -868,7 +868,6 @@ img {
   max-width: 600px;
 }
 
-/* Top Red Box Area: Eyebrow + Continue with Google Icon Button */
 .form-top-row {
   display: flex;
   justify-content: space-between;
@@ -975,7 +974,6 @@ img {
   text-decoration: underline;
 }
 
-/* Second Red Box Area: Continue with OTP Button */
 .otp-login-wrapper {
   margin-top: 16px;
   display: flex;
@@ -1689,13 +1687,6 @@ body.reader-body {
   }
 }
 
-.login-panel {
-  display: flex;
-  justify-content: space-around;
-  gap: 350px;
-  padding-bottom: 25px;
-}
-
 /* Navbar Profile Icon Pill */
 .navbar > div {
   display: flex;
@@ -1831,7 +1822,8 @@ body.reader-body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0;
 }
 
 .profile-avatar-center {
@@ -2141,7 +2133,7 @@ body.reader-body {
   line-height: 1.15;
   color: var(--espresso-dark, #152a45);
   display: -webkit-box;
-  /* -webkit-line-clamp: 2; */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -2239,13 +2231,8 @@ body.reader-body {
 }
 
 /* =========================================================
-   SIDEBAR FLOW FIX & READING THEMES
+   READING THEMES
    ========================================================= */
-.profile-sidebar {
-  justify-content: flex-start !important;
-  gap: 0;
-}
-
 .theme-switcher-box {
   margin-top: auto;
   padding-top: 6px;
@@ -2352,4 +2339,334 @@ body.reader-body {
   background-color: transparent !important;
   color: #38bdf8 !important;
   border-color: #38bdf8 !important;
+}
+
+/* =========================================================
+   LEFT-SIDEBAR "EXPLORE THE SHELVES" GENRE COVER BUTTONS
+   ========================================================= */
+.catalog-stacks-layout {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  gap: 26px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+@media (max-width: 960px) {
+  .catalog-stacks-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Sticky Left Genre Sidebar */
+.stacks-sidebar {
+  position: sticky;
+  top: 20px;
+  background: var(--parchment-card, #ffffff);
+  border: 1px solid var(--parchment-border, #cbd5e1);
+  border-radius: 14px;
+  padding: 18px 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.stacks-sidebar-header {
+  padding: 0 6px 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--parchment-border, #e2e8f0);
+}
+
+.stacks-eyebrow {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #8c6d46;
+  margin-bottom: 2px;
+}
+
+.stacks-sidebar-header h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--espresso-dark);
+}
+
+.stacks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+@media (max-width: 960px) {
+  .stacks-sidebar {
+    position: static;
+  }
+  .stacks-list {
+    flex-direction: row;
+    overflow-x: auto;
+    max-height: none;
+    padding-bottom: 6px;
+  }
+  .stack-item.stack-cover-btn {
+    min-width: 210px;
+  }
+}
+
+/* Genre Book-Cover Background Buttons (High-Contrast Scrim) */
+.stack-item.stack-cover-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 62px;
+  padding: 13px 15px;
+  border-radius: 11px;
+  border: 1px solid rgba(15, 23, 42, 0.28);
+  background-color: #1e3a5f;
+  background-size: cover;
+  background-position: center 25%;
+  background-repeat: no-repeat;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+/* Directional gradient scrim so white titles stay 100% readable over any cover */
+.stack-item.stack-cover-btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(11, 19, 36, 0.90) 0%,
+    rgba(15, 26, 48, 0.78) 62%,
+    rgba(15, 26, 48, 0.52) 100%
+  );
+  transition: background 0.2s ease;
+  pointer-events: none;
+}
+
+.stack-item.stack-cover-btn:hover {
+  transform: translateX(4px);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.24);
+}
+
+.stack-item.stack-cover-btn:hover::after {
+  background: linear-gradient(
+    90deg,
+    rgba(11, 19, 36, 0.84) 0%,
+    rgba(15, 26, 48, 0.68) 62%,
+    rgba(15, 26, 48, 0.38) 100%
+  );
+}
+
+/* Active State: Warm Gold Border + Coral Bookmark Bar */
+.stack-item.stack-cover-btn.is-active {
+  transform: translateX(4px);
+  border-color: #f3e7cb;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.28);
+}
+
+.stack-item.stack-cover-btn.is-active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 5px;
+  background: #d97757;
+  z-index: 2;
+}
+
+.stack-item.stack-cover-btn .stack-aisle-code {
+  font-family: monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(4px);
+  color: #facc15;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.stack-item.stack-cover-btn .stack-meta {
+  flex: 1;
+  min-width: 0;
+  z-index: 1;
+}
+
+.stack-item.stack-cover-btn .stack-title {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.25;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stack-item.stack-cover-btn .stack-sub {
+  display: block;
+  font-size: 0.7rem;
+  color: rgba(241, 245, 249, 0.85);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+  margin-top: 2px;
+}
+
+.stack-item.stack-cover-btn .stack-arrow {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #facc15;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  z-index: 1;
+}
+
+.stack-item.stack-cover-btn:hover .stack-arrow,
+.stack-item.stack-cover-btn.is-active .stack-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Right Shelf Header Card */
+.shelf-header-card {
+  background: var(--parchment-card, #ffffff);
+  border: 1px solid var(--parchment-border, #cbd5e1);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  box-shadow: var(--shadow-card);
+}
+
+.shelf-eyebrow {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: #8c6d46;
+  margin-bottom: 3px;
+}
+
+.shelf-header-card h2 {
+  margin: 0 0 4px 0 !important;
+  border: none !important;
+  padding: 0 !important;
+  font-size: 1.5rem;
+}
+
+.shelf-jump-links {
+  margin: 0;
+  font-size: 0.84rem;
+  color: var(--muted-ink);
+}
+
+.shelf-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shelf-pill {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1px solid var(--parchment-border, #cbd5e1);
+  background: var(--parchment-bg, #f8fafc);
+  color: var(--ink-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.shelf-pill:hover {
+  border-color: var(--espresso-dark);
+}
+
+.shelf-pill.is-active {
+  background: var(--espresso-dark);
+  color: #ffffff;
+  border-color: var(--espresso-dark);
+}
+
+/* 4-Column Grid beside the Sidebar + Subtle Genre Pill on Cards */
+.book-grid.catalog-4col {
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 0;
+}
+
+@media (max-width: 1200px) {
+  .book-grid.catalog-4col {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .book-grid.catalog-4col {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .book-grid.catalog-4col {
+    grid-template-columns: 1fr;
+  }
+}
+
+.card-genre-chip {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(30, 58, 95, 0.1);
+  color: #1e3a5f;
+  margin-bottom: 4px;
+}
+
+/* Dark Mode support for Stacks Sidebar */
+:root[data-theme="dark"] .stack-item.stack-cover-btn {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+:root[data-theme="dark"] .stack-item.stack-cover-btn.is-active {
+  border-color: #38bdf8;
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.22);
+}
+
+:root[data-theme="dark"] .shelf-pill.is-active {
+  background: #38bdf8;
+  color: #0b1120;
+}
+
+:root[data-theme="dark"] .book-card {
+  background-color: #131c31;
+  border-color: #24324d;
+}
+
+:root[data-theme="dark"] .book-card:hover {
+  background-color: #192540;
+}
+
+:root[data-theme="dark"] .card-genre-chip {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
 }

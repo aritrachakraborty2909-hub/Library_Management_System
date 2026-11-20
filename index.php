@@ -15,13 +15,39 @@ $searchQuery = trim($_GET['q'] ?? '');
 // Call Module 0.2.1
 $books = searchBooks($pdo, $searchQuery);
 
-// Fetch logged-in user's wishlist book IDs so we can highlight saved hearts
+// Fetch logged-in user's wishlist book IDs
 $wishlistedIds = [];
 if (isset($_SESSION['member_id'])) {
     $wStmt = $pdo->prepare("SELECT book_id FROM wishlist WHERE member_id = :mid");
     $wStmt->execute([':mid' => (int)$_SESSION['member_id']]);
     $wishlistedIds = array_map('intval', $wStmt->fetchAll(PDO::FETCH_COLUMN));
 }
+
+// Group books dynamically by Genre and grab 1 featured cover ISBN per genre
+$genreStacks  = [];
+$allCoverIsbn = '';
+
+foreach ($books as $b) {
+    $isbn = trim($b['isbn'] ?? '');
+    if ($allCoverIsbn === '' && $isbn !== '') {
+        $allCoverIsbn = $isbn;
+    }
+
+    $gName = trim($b['genre_category'] ?? '');
+    if ($gName === '') {
+        $gName = 'General';
+    }
+    if (!isset($genreStacks[$gName])) {
+        $genreStacks[$gName] = [
+            'name'  => $gName,
+            'cover' => ''
+        ];
+    }
+    if ($genreStacks[$gName]['cover'] === '' && $isbn !== '') {
+        $genreStacks[$gName]['cover'] = $isbn;
+    }
+}
+ksort($genreStacks);
 
 $staffRoles = ['Librarian', 'Cataloger'];
 $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
@@ -32,7 +58,7 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Reading Room | Library Management System</title>
-    <link rel="stylesheet" href="assets/style.css?v=9">
+    <link rel="stylesheet" href="assets/style.css?v=12">
     <script>
       // Apply saved theme before paint to prevent flash
       (function() {
@@ -96,102 +122,226 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
 </section>
 
 <main class="container">
-    <h2 id="shelf-heading">
-        <?= $searchQuery !== '' 
-            ? "Search Results for '" . htmlspecialchars($searchQuery) . "' (" . count($books) . " found)" 
-            : "Trending & Available Books" ?>
-    </h2>
+    <!-- Two-Column Catalog Workspace: Left Genre Shelf Rail + Right Bookshelf -->
+    <div class="catalog-stacks-layout">
 
-    <p id="no-match-msg" class="no-match-msg<?= empty($books) ? ' is-visible' : '' ?>">
-        No books matched your search. Try another title, author, ISBN, or genre.
-    </p>
+        <!-- LEFT SIDEBAR: Genre Book-Cover Background Buttons -->
+        <aside class="stacks-sidebar" aria-label="Browse by Genre">
+            <div class="stacks-sidebar-header">
+                <span class="stacks-eyebrow">CURATED AISLES</span>
+                <h3>Explore the Shelves</h3>
+            </div>
 
-    <?php if (!empty($books)): ?>
-        <div class="book-grid" id="book-grid">
-            <?php foreach ($books as $book): ?>
-                <?php
-                    $searchBlob = strtolower(
-                        ($book['title'] ?? '') . ' ' .
-                        ($book['author'] ?? '') . ' ' .
-                        ($book['isbn'] ?? '') . ' ' .
-                        ($book['genre_category'] ?? '') . ' ' .
-                        ($book['publisher'] ?? '') . ' ' .
-                        ($book['book_index'] ?? '') . ' ' .
-                        ($book['publication_year'] ?? '')
-                    );
-
-                    $isBookAvailable = ($book['available_copies'] > 0 && !empty($book['pdf_path']));
-                    $inWishlist      = in_array((int)$book['book_id'], $wishlistedIds, true);
-                ?>
-                <div class="book-card" data-search="<?= htmlspecialchars($searchBlob) ?>">
-                    <div style="position: relative;">
-                        <?php if (isset($_SESSION['member_id'])): ?>
-                            <form method="POST" action="wishlist_action.php" class="wishlist-heart-form">
-                                <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
-                                <input type="hidden" name="redirect" value="index.php">
-                                <button type="submit" class="wishlist-heart-btn <?= $inWishlist ? 'is-saved' : '' ?>" title="<?= $inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' ?>">
-                                    <?= $inWishlist ? '&#9829;' : '&#9825;' ?>
-                                </button>
-                            </form>
-                        <?php endif; ?>
-
-                        <img class="book-cover" 
-                             src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($book['isbn']) ?>-M.jpg" 
-                             alt="Book Cover">
-                        
-                        <h3><?= htmlspecialchars($book['title']) ?></h3>
-                        <p class="book-author">by <?= htmlspecialchars($book['author']) ?></p>
-                        <p class="book-publisher">
-                            <?= htmlspecialchars($book['genre_category']) ?>
-                            <?= !empty($book['publication_year']) ? ' &bull; ' . (int)$book['publication_year'] : '' ?>
-                        </p>   
-                        <p class="book-meta-info">
-                            Book Index: <strong><?= htmlspecialchars($book['book_index']) ?></strong><br>
-                            ISBN: <?= htmlspecialchars($book['isbn']) ?>
-                        </p>
-
-                        <?php if ($isBookAvailable): ?>
-                            <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Librarian'): ?>
-                                <span class="badge available">Available (<?= (int)$book['available_copies'] ?>/<?= (int)$book['total_copies'] ?>)</span>
-                            <?php endif; ?>
-                        <?php else: ?>
-                            <span class="badge unavailable">Currently Unavailable</span>
-                        <?php endif; ?>
+            <div class="stacks-list" id="stacks-list">
+                <!-- Default "All Books" Button with Featured Book Cover Background -->
+                <?php $allBg = $allCoverIsbn !== '' ? "https://covers.openlibrary.org/b/isbn/" . htmlspecialchars($allCoverIsbn) . "-M.jpg" : ""; ?>
+                <button type="button"
+                        class="stack-item stack-cover-btn is-active"
+                        data-genre="all"
+                        <?= $allBg !== '' ? 'style="background-image: url(\'' . $allBg . '\');"' : '' ?>>
+                    <span class="stack-aisle-code">00</span>
+                    <div class="stack-meta">
+                        <span class="stack-title">All Books</span>
+                        <span class="stack-sub">Complete Catalog</span>
                     </div>
+                    <span class="stack-arrow" aria-hidden="true">&rarr;</span>
+                </button>
 
-                    <?php if (isset($_SESSION['member_id']) && $isBookAvailable): ?>
-                        <form method="POST" action="borrow_action.php" class="borrow-form">
-                            <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
-                            <button type="submit" class="btn btn-full-width">Borrow Book</button>
-                        </form>
-                    <?php elseif (!isset($_SESSION['member_id']) && $isBookAvailable): ?>
-                        <a href="login.php" class="btn btn-login-borrow">Log in to Borrow</a>
+                <!-- Dynamic Genre Buttons with Genre Book Cover Background -->
+                <?php $aisleNum = 1; ?>
+                <?php foreach ($genreStacks as $gKey => $stack): ?>
+                    <?php $coverUrl = $stack['cover'] !== '' ? "https://covers.openlibrary.org/b/isbn/" . htmlspecialchars($stack['cover']) . "-M.jpg" : ""; ?>
+                    <button type="button"
+                            class="stack-item stack-cover-btn"
+                            data-genre="<?= htmlspecialchars(strtolower($gKey)) ?>"
+                            <?= $coverUrl !== '' ? 'style="background-image: url(\'' . $coverUrl . '\');"' : '' ?>>
+                        <span class="stack-aisle-code"><?= str_pad((string)$aisleNum++, 2, '0', STR_PAD_LEFT) ?></span>
+                        <div class="stack-meta">
+                            <span class="stack-title"><?= htmlspecialchars($stack['name']) ?></span> 
+                        </div>
+                        <span class="stack-arrow" aria-hidden="true">&rarr;</span>
+                    </button>
+                <?php endforeach; ?>
+            </div>
+        </aside>
+
+        <!-- RIGHT MAIN SHELF AREA -->
+        <section class="stacks-shelf-area">
+            <!-- Editorial Shelf Banner -->
+            <div class="shelf-header-card">
+                <div>
+                    <span class="shelf-eyebrow" id="shelf-eyebrow">AISLE 00 // COMPLETE COLLECTION</span>
+                    <h2 id="shelf-heading">
+                        <?= $searchQuery !== '' 
+                            ? "Search Results for '" . htmlspecialchars($searchQuery) . "'" 
+                            : "All Stacks & Trending Books" ?>
+                    </h2>
+                </div>
+
+                <!-- Quick Filter Pills inside the Shelf Header -->
+                <div class="shelf-filter-pills">
+                    <button type="button" class="shelf-pill is-active" data-avail="all">All Editions</button>
+                    <button type="button" class="shelf-pill" data-avail="available">Available Now</button>
+                    <?php if (isset($_SESSION['member_id'])): ?>
+                        <button type="button" class="shelf-pill" data-avail="wishlist">Saved &#9829;</button>
                     <?php endif; ?>
                 </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
+            </div>
+
+            <p id="no-match-msg" class="no-match-msg<?= empty($books) ? ' is-visible' : '' ?>">
+                No books matched this shelf or filter. Try selecting another genre or clearing your search.
+            </p>
+
+            <?php if (!empty($books)): ?>
+                <div class="book-grid catalog-4col" id="book-grid">
+                    <?php foreach ($books as $book): ?>
+                        <?php
+                            $rawGenre   = trim($book['genre_category'] ?? 'General');
+                            $searchBlob = strtolower(
+                                ($book['title'] ?? '') . ' ' .
+                                ($book['author'] ?? '') . ' ' .
+                                ($book['isbn'] ?? '') . ' ' .
+                                $rawGenre . ' ' .
+                                ($book['publisher'] ?? '') . ' ' .
+                                ($book['book_index'] ?? '') . ' ' .
+                                ($book['publication_year'] ?? '')
+                            );
+
+                            $isBookAvailable = ($book['available_copies'] > 0 && !empty($book['pdf_path']));
+                            $inWishlist      = in_array((int)$book['book_id'], $wishlistedIds, true);
+                        ?>
+                        <div class="book-card"
+                             data-search="<?= htmlspecialchars($searchBlob) ?>"
+                             data-genre="<?= htmlspecialchars(strtolower($rawGenre)) ?>"
+                             data-genre-label="<?= htmlspecialchars($rawGenre) ?>"
+                             data-available="<?= $isBookAvailable ? '1' : '0' ?>"
+                             data-wishlist="<?= $inWishlist ? '1' : '0' ?>">
+                            <div style="position: relative;">
+                                <?php if (isset($_SESSION['member_id'])): ?>
+                                    <form method="POST" action="wishlist_action.php" class="wishlist-heart-form">
+                                        <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
+                                        <input type="hidden" name="redirect" value="index.php">
+                                        <button type="submit" class="wishlist-heart-btn <?= $inWishlist ? 'is-saved' : '' ?>" title="<?= $inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' ?>">
+                                            <?= $inWishlist ? '&#9829;' : '&#9825;' ?>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+
+                                <img class="book-cover" 
+                                     src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($book['isbn']) ?>-M.jpg" 
+                                     alt="Book Cover">
+                                
+                                <span class="card-genre-chip"><?= htmlspecialchars($rawGenre) ?></span>
+                                <h3><?= htmlspecialchars($book['title']) ?></h3>
+                                <p class="book-author">by <?= htmlspecialchars($book['author']) ?></p>
+                                <p class="book-publisher">
+                                    <?= !empty($book['publication_year']) ? 'Published ' . (int)$book['publication_year'] : 'Library Edition' ?>
+                                </p>   
+                                <p class="book-meta-info">
+                                    Index: <strong><?= htmlspecialchars($book['book_index']) ?></strong> &bull; ISBN: <?= htmlspecialchars($book['isbn']) ?>
+                                </p>
+
+                                <?php if ($isBookAvailable): ?>
+                                    <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'Librarian'): ?>
+                                        <span class="badge available">Available (<?= (int)$book['available_copies'] ?>/<?= (int)$book['total_copies'] ?>)</span>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="badge unavailable">Currently Unavailable</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if (isset($_SESSION['member_id']) && $isBookAvailable): ?>
+                                <form method="POST" action="borrow_action.php" class="borrow-form">
+                                    <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
+                                    <button type="submit" class="btn btn-full-width">Borrow Book</button>
+                                </form>
+                            <?php elseif (!isset($_SESSION['member_id']) && $isBookAvailable): ?>
+                                <a href="login.php" class="btn btn-login-borrow">Log in to Borrow</a>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
+    </div>
 </main>
 
 <script>
-  const searchInput = document.getElementById('catalog-search-input');
-  const bookCards   = Array.from(document.querySelectorAll('.book-card'));
-  const noMatchMsg  = document.getElementById('no-match-msg');
+  const searchInput   = document.getElementById('catalog-search-input');
+  const bookCards     = Array.from(document.querySelectorAll('.book-card'));
+  const stackButtons  = Array.from(document.querySelectorAll('.stack-item'));
+  const availPills    = Array.from(document.querySelectorAll('.shelf-pill'));
+  const noMatchMsg    = document.getElementById('no-match-msg');
+  const shelfHeading  = document.getElementById('shelf-heading');
+  const shelfEyebrow  = document.getElementById('shelf-eyebrow');
 
-  if (searchInput && bookCards.length > 0) {
-    searchInput.addEventListener('input', () => {
-      const words = searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
-      let visibleCount = 0;
+  let activeGenre = 'all';
+  let activeAvail = 'all';
 
-      bookCards.forEach(card => {
-        const haystack = card.dataset.search || '';
-        const isMatch = words.every(word => haystack.includes(word));
-        card.style.display = isMatch ? 'flex' : 'none';
-        if (isMatch) visibleCount++;
-      });
+  function applyCatalogFilters() {
+    const words = searchInput
+      ? searchInput.value.toLowerCase().trim().split(/\s+/).filter(Boolean)
+      : [];
 
-      noMatchMsg.style.display = (visibleCount === 0) ? 'block' : 'none';
+    let visibleCount = 0;
+
+    bookCards.forEach(card => {
+      const haystack   = card.dataset.search || '';
+      const cardGenre  = card.dataset.genre || '';
+      const isAvail    = card.dataset.available === '1';
+      const isWishlist = card.dataset.wishlist === '1';
+
+      const matchesSearch = words.every(word => haystack.includes(word));
+      const matchesGenre  = (activeGenre === 'all' || cardGenre === activeGenre);
+      const matchesAvail  = (activeAvail === 'all') ||
+                            (activeAvail === 'available' && isAvail) ||
+                            (activeAvail === 'wishlist' && isWishlist);
+
+      const show = matchesSearch && matchesGenre && matchesAvail;
+      card.style.display = show ? 'flex' : 'none';
+      if (show) visibleCount++;
     });
+
+    if (noMatchMsg) noMatchMsg.style.display = (visibleCount === 0) ? 'block' : 'none';
+  }
+
+  // Left Sidebar Shelf Selection
+  stackButtons.forEach((btn, index) => {
+    btn.addEventListener('click', () => {
+      stackButtons.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+
+      activeGenre = btn.dataset.genre;
+      const titleText = btn.querySelector('.stack-title').textContent;
+
+      if (shelfEyebrow) {
+        shelfEyebrow.textContent = activeGenre === 'all'
+          ? 'AISLE 00 // COMPLETE COLLECTION'
+          : `AISLE ${String(index).padStart(2, '0')} // GENRE SHELF`;
+      }
+      if (shelfHeading) {
+        shelfHeading.textContent = activeGenre === 'all'
+          ? 'All Stacks & Trending Books'
+          : titleText;
+      }
+
+      applyCatalogFilters();
+    });
+  });
+
+  // Top Shelf Availability / Saved Pills
+  availPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      availPills.forEach(p => p.classList.remove('is-active'));
+      pill.classList.add('is-active');
+      activeAvail = pill.dataset.avail;
+      applyCatalogFilters();
+    });
+  });
+
+  // Live Search Input
+  if (searchInput && bookCards.length > 0) {
+    searchInput.addEventListener('input', applyCatalogFilters);
   }
 </script>
 
