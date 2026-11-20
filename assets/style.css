@@ -4,7 +4,7 @@
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. Typography & Web Fonts
+1. Typography & Web Fonts
    -------------------------------------------------------------------------- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
 
@@ -44,10 +44,10 @@
 }
 
 /* --------------------------------------------------------------------------
-   2. Design Tokens (:root)
+2. Design Tokens (:root)
    -------------------------------------------------------------------------- */
 :root {
-  /* Cool Ice-Blue Page & Card Surfaces (Replaces Warm Parchment) */
+  /* Cool Ice-Blue Page & Card Surfaces */
   --parchment-bg: #eef2f7;
   --parchment-card: #ffffff;
   --parchment-border: #cbd5e1;
@@ -61,12 +61,12 @@
   --ink-text: #0f172a;
   --muted-ink: #475569;
 
-  /* Status & Crimson Red Accents */
+  /* Status & Accent Highlights */
   --success-green: #1e6049;
   --success-bg: #e2f3ec;
   --danger-red: #9b1c24;
   --danger-bg: #fde8e8;
-  --accent-gold: #f3e7cb; /* Crimson highlight for active tabs / index badges */
+  --accent-gold: #f3e7cb;
 
   /* Typography & Blue-Tinted Shadows */
   --font-serif: 'Libre Baskerville', Georgia, 'Times New Roman', serif;
@@ -74,8 +74,9 @@
   --shadow-card: 0 2px 8px rgba(30, 58, 95, 0.08);
   --shadow-card-hover: 0 8px 18px rgba(30, 58, 95, 0.14);
 }
+
 /* --------------------------------------------------------------------------
-   3. Base Reset & Global Styles
+3. Base Reset & Global Styles
    -------------------------------------------------------------------------- */
 *,
 *::before,
@@ -137,7 +138,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   4. Universal Layout & Utilities
+4. Universal Layout & Utilities
    -------------------------------------------------------------------------- */
 .container {
   max-width: 1400px;
@@ -180,7 +181,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   5. Universal Navigation Bar (Unified for index, admin, librarian & loans)
+5. Universal Navigation Bar (Unified for index, admin, librarian & loans)
    -------------------------------------------------------------------------- */
 .navbar,
 .top-nav,
@@ -193,7 +194,6 @@ img {
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  /* border-bottom: 3px solid var(--parchment-border); */
   box-shadow: 0 2px 8px rgba(44, 30, 20, 0.15);
 }
 
@@ -268,7 +268,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   6. Hero & Search Banner (index.php)
+6. Hero & Search Banner (index.php)
    -------------------------------------------------------------------------- */
 .hero {
   background-image: 
@@ -279,7 +279,6 @@ img {
   background-repeat: no-repeat;
   padding: 46px 20px 42px;
   text-align: center;
-  /* border-bottom: 2px solid var(--parchment-border); */
 }
 
 .hero h1 {
@@ -347,7 +346,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   7. Buttons (Unified Style)
+7. Buttons (Unified Style)
    -------------------------------------------------------------------------- */
 .btn,
 .primary-button {
@@ -464,7 +463,7 @@ img {
 
 .password-wrapper input {
   width: 100%;
-  padding-right: 44px; /* Leaves room on the right for the eye icon */
+  padding-right: 44px;
 }
 
 .toggle-password-btn {
@@ -482,8 +481,9 @@ img {
 .toggle-password-btn:hover {
   color: var(--espresso-dark);
 }
+
 /* --------------------------------------------------------------------------
-   8. Cards & Content Panels (Unified Reading Room Aesthetics)
+8. Cards & Content Panels (Unified Reading Room Aesthetics)
    -------------------------------------------------------------------------- */
 .card,
 .panel,
@@ -519,7 +519,6 @@ img {
   margin-bottom: 28px;
 }
 
-/* Catalog Book Grid & Book Cards */
 /* Catalog Book Grid & Book Cards */
 .book-grid {
   display: grid;
@@ -605,7 +604,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   9. Form Controls & Field Styles (Unified)
+9. Form Controls & Field Styles (Unified)
    -------------------------------------------------------------------------- */
 .form-grid {
   display: grid;
@@ -669,7 +668,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   10. Auth & Registration Pages (login, register, forgot/reset password)
+10. Auth & Registration Pages (login, register, forgot/reset password)
    -------------------------------------------------------------------------- */
 .reading-room {
   display: grid;
@@ -948,7 +947,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   11. Alerts & Notifications
+11. Alerts & Notifications
    -------------------------------------------------------------------------- */
 .alert,
 .alert-banner {
@@ -974,7 +973,7 @@ img {
 }
 
 /* --------------------------------------------------------------------------
-   12. Tables (Unified across Dashboards & Loans)
+12. Tables (Unified across Dashboards & Loans)
    -------------------------------------------------------------------------- */
 table {
   width: 100%;
@@ -1015,7 +1014,7 @@ tr:last-child td {
 }
 
 /* --------------------------------------------------------------------------
-   13. Staff Workbench & Admin Components (admin_dashboard.php)
+13. Staff Workbench & Admin Components (admin_dashboard.php)
    -------------------------------------------------------------------------- */
 .isbn-row {
   display: flex;
@@ -1144,7 +1143,7 @@ tr:last-child td {
 }
 
 /* --------------------------------------------------------------------------
-   14. Member Loans & Shelf Components (my_loans.php)
+14. Member Loans & Shelf Components (my_loans.php)
    -------------------------------------------------------------------------- */
 .summary-grid {
   display: grid;
@@ -1364,7 +1363,7 @@ tr:last-child td {
 }
 
 /* --------------------------------------------------------------------------
-   15. PDF Reader View (read_book.php)
+15. PDF Reader View (read_book.php)
    -------------------------------------------------------------------------- */
 body.reader-body {
   background-color: var(--parchment-bg);
@@ -1486,7 +1485,6 @@ body.reader-body {
   font-weight: bold;
 }
 
-
 @media (max-width: 980px) {
   .book-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -1583,6 +1581,7 @@ body.reader-body {
   .book-grid {
     grid-template-columns: 1fr;
   }
+
   .search-form {
     flex-direction: column;
     align-items: stretch;
@@ -1601,9 +1600,668 @@ body.reader-body {
     gap: 12px;
   }
 }
-.login-panel{
+
+.login-panel {
   display: flex;
   justify-content: space-around;
   gap: 350px;
   padding-bottom: 25px;
+}
+
+/* Navbar Profile Icon Pill */
+.navbar > div {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nav-profile-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 5px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #ffffff !important;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.nav-profile-pill:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
+.nav-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #ffffff;
+}
+
+.nav-avatar-fallback {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: #d9b97e;
+  color: #152a45;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Profile Page Card */
+.profile-card {
+  background: #ffffff;
+  border: 1px solid var(--parchment-border, #e2e8f0);
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 20px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.profile-avatar-lg {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--espresso-dark, #152a45);
+}
+
+.profile-avatar-lg-fallback {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background-color: var(--espresso-dark, #152a45);
+  color: #ffffff;
+  font-size: 1.9rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-form .form-group {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-form label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--espresso-dark, #152a45);
+}
+
+.profile-form input[type="text"],
+.profile-form input[type="email"],
+.profile-form input[type="tel"],
+.profile-form textarea {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+/* =========================================================
+   TWO-COLUMN EDITORIAL PROFILE DASHBOARD & WISHLIST
+   ========================================================= */
+.profile-dashboard {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 48px;
+}
+
+@media (max-width: 900px) {
+  .profile-dashboard {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Left Sidebar — aligned with right column bottom edge */
+.profile-sidebar {
+  background: #ffffff;
+  border: 1px solid var(--parchment-border, #e2e8f0);
+  border-radius: 14px;
+  padding: 20px 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.profile-avatar-center {
+  text-align: center;
+}
+
+.profile-avatar-ring {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 10px auto;
+}
+
+.profile-avatar-xl {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--espresso-dark, #152a45);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.profile-avatar-xl-fallback {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: var(--espresso-dark, #152a45);
+  color: #ffffff;
+  font-size: 2.2rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.avatar-edit-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #d97757;
+  color: #ffffff;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.15s ease;
+}
+
+.avatar-edit-badge:hover {
+  transform: scale(1.08);
+}
+
+.profile-sidebar-name {
+  margin: 0 0 2px 0;
+  font-size: 1.12rem;
+  color: var(--espresso-dark, #152a45);
+}
+
+.profile-sidebar-role {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.profile-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  text-align: center;
+  margin-top: 12px;
+  padding: 8px 0;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.profile-stats-row strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--espresso-dark, #152a45);
+}
+
+.profile-stats-row span {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+/* Quick Default Avatars Strip */
+.default-avatars-box {
+  margin-top: 12px;
+  text-align: center;
+}
+
+.default-avatars-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 7px;
+}
+
+.default-avatars-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.default-avatar-option {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #cbd5e1;
+  background: #f8fafc;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.default-avatar-option img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.default-avatar-initial {
+  background: var(--espresso-dark, #152a45);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.default-avatar-option:hover {
+  transform: scale(1.1);
+  border-color: #d97757;
+}
+
+.default-avatar-option.is-selected {
+  border-color: #d97757;
+  box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.35);
+  transform: scale(1.08);
+}
+
+.profile-divider {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 14px 0;
+}
+
+.profile-sidebar-form .form-group {
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-sidebar-form label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--espresso-dark, #152a45);
+}
+
+.profile-sidebar-form input {
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.84rem;
+  font-family: inherit;
+}
+
+.profile-sidebar-form input:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+/* Right Main Column */
+.profile-main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.profile-banner {
+  position: relative;
+  height: 170px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1b3252 0%, #314e72 55%, #8c6d46 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(21, 42, 69, 0.14);
+}
+
+.profile-banner-overlay {
+  padding: 20px;
+}
+
+.profile-banner-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  margin-bottom: 8px;
+}
+
+.profile-banner h1 {
+  margin: 0 0 6px 0;
+  font-size: 1.9rem;
+  letter-spacing: 0.06em;
+  color: #ffffff;
+}
+
+.profile-banner p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.profile-section-card {
+  background: #ffffff;
+  border: 1px solid var(--parchment-border, #e2e8f0);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+}
+
+.profile-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.profile-section-header h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  color: var(--espresso-dark, #152a45);
+}
+
+.profile-view-all {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2b547e;
+  text-decoration: none;
+}
+
+.profile-empty-note {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* Compact Catalog Cards inside Profile (~Half Size) */
+.mini-book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+  gap: 8px;
+}
+
+.mini-book-card {
+  background: #faf6ee;
+  border: 1px solid #e6dcc8;
+  border-radius: 6px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mini-book-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+}
+
+.mini-book-cover {
+  width: 100%;
+  height: 95px;
+  object-fit: cover;
+  object-position: top center;
+  border-radius: 4px;
+  background: #ede2c8;
+  border: 1px solid #e6dcc8;
+  margin-bottom: 4px;
+}
+
+.mini-book-card h4 {
+  margin: 0 0 1px 0;
+  font-size: 0.68rem;
+  line-height: 1.15;
+  color: var(--espresso-dark, #152a45);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.mini-book-author {
+  margin: 0 0 3px 0;
+  font-size: 0.6rem;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-due-tag {
+  display: inline-block;
+  font-size: 0.56rem;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #fef3c7;
+  color: #92400e;
+  margin-bottom: 4px;
+  width: fit-content;
+}
+
+.mini-book-actions {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.mini-btn {
+  padding: 3px 4px !important;
+  font-size: 0.6rem !important;
+  line-height: 1.1;
+  text-align: center;
+  width: 100%;
+}
+
+.mini-btn-outline {
+  background: transparent !important;
+  color: var(--espresso-dark, #152a45) !important;
+  border: 1px solid var(--espresso-dark, #152a45) !important;
+}
+
+.mini-btn-outline:hover {
+  background: var(--espresso-dark, #152a45) !important;
+  color: #ffffff !important;
+}
+
+.mini-btn-danger {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: 1px solid #fecaca !important;
+  padding: 3px 6px !important;
+}
+
+.mini-btn-danger:hover {
+  background: #b91c1c !important;
+  color: #ffffff !important;
+}
+
+/* Catalog Heart Button on index.php */
+.wishlist-heart-form {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 5;
+}
+
+.wishlist-heart-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: #64748b;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease, color 0.15s ease;
+}
+
+.wishlist-heart-btn:hover {
+  transform: scale(1.1);
+  color: #e11d48;
+}
+
+.wishlist-heart-btn.is-saved {
+  color: #e11d48;
+}
+
+/* =========================================================
+   SIDEBAR FLOW FIX & READING THEMES
+   ========================================================= */
+.profile-sidebar {
+  justify-content: flex-start !important;
+  gap: 0;
+}
+
+.theme-switcher-box {
+  margin-top: auto;
+  padding-top: 6px;
+}
+
+.theme-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.theme-pill-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border-radius: 7px;
+  border: 1px solid var(--parchment-border, #cbd5e1);
+  background: var(--parchment-bg, #f8fafc);
+  color: var(--ink-text, #0f172a);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.theme-pill-btn:hover {
+  border-color: var(--espresso-dark, #1e3a5f);
+  transform: translateY(-1px);
+}
+
+.theme-pill-btn.is-active {
+  border-color: #d97757;
+  box-shadow: 0 0 0 2px rgba(217, 119, 87, 0.25);
+}
+
+.theme-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid;
+  flex-shrink: 0;
+}
+
+/* Theme 2: Pure White */
+:root[data-theme="light"] {
+  --parchment-bg: #f8fafc;
+  --parchment-card: #ffffff;
+  --parchment-border: #e2e8f0;
+  --espresso-dark: #0f172a;
+  --espresso-hover: #1e293b;
+  --ink-text: #0f172a;
+  --muted-ink: #64748b;
+}
+
+/* Theme 3: Warm Parchment */
+:root[data-theme="parchment"] {
+  --parchment-bg: #f3ead8;
+  --parchment-card: #fffdf8;
+  --parchment-border: #d6c5a5;
+  --espresso-dark: #4a3219;
+  --espresso-hover: #33210f;
+  --ink-text: #2b1d0e;
+  --muted-ink: #6b533b;
+}
+
+/* Theme 4: Midnight Dark Mode */
+:root[data-theme="dark"] {
+  --parchment-bg: #0b1120;
+  --parchment-card: #131c31;
+  --parchment-border: #24324d;
+  --espresso-dark: #38bdf8;
+  --espresso-hover: #7dd3fc;
+  --ink-text: #f1f5f9;
+  --muted-ink: #94a3b8;
+}
+
+:root[data-theme="dark"] .navbar {
+  background-color: #060a14;
+  border-bottom: 1px solid #1e293b;
+}
+
+:root[data-theme="dark"] .profile-sidebar,
+:root[data-theme="dark"] .profile-section-card {
+  background-color: #131c31;
+  border-color: #24324d;
+}
+
+:root[data-theme="dark"] .profile-stats-row,
+:root[data-theme="dark"] .profile-sidebar-form input,
+:root[data-theme="dark"] .mini-book-card {
+  background-color: #0f172a;
+  border-color: #24324d;
+  color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .btn,
+:root[data-theme="dark"] .mini-btn {
+  background-color: #38bdf8;
+  color: #0b1120;
+}
+
+:root[data-theme="dark"] .mini-btn-outline {
+  background-color: transparent !important;
+  color: #38bdf8 !important;
+  border-color: #38bdf8 !important;
 }

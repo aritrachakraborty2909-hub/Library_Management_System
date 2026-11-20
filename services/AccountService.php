@@ -10,17 +10,17 @@ function registerMember(PDO $pdo, array $data): array {
     $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
 
     try {
-        // 0.1.2.3 Save Member Profile (Default status is 'Active' for instant testing, or 'Pending' for Librarian approval)
-        $sql = "INSERT INTO members (full_name, email, phone_number, password_hash, address, role, account_status)
-                VALUES (:name, :email, :phone, :hash, :address, 'Member', 'Active')";
+        // 0.1.2.3 Save Member Profile (Default status is 'Active' and max_borrowing_limit is 5)
+        $sql = "INSERT INTO members (full_name, email, phone_number, password_hash, address, role, account_status, max_borrowing_limit)
+                VALUES (:name, :email, :phone, :hash, :address, 'Member', 'Active', 5)";
         
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
             ':name'    => trim($data['full_name']),
             ':email'   => trim($data['email']),
-            ':phone'   => trim($data['phone_number']),
+            ':phone'   => trim($data['phone_number'] ?? ''),
             ':hash'    => $passwordHash,
-            ':address' => trim($data['address'])
+            ':address' => trim($data['address'] ?? '')
         ]);
 
         return ['success' => true, 'message' => 'Registration successful! You can now log in.'];
@@ -43,15 +43,17 @@ function loginMember(PDO $pdo, string $email, string $password): array {
         }
 
         // 0.1.1.3 Generate Authentication Token (Save user details into PHP Session)
-        $_SESSION['member_id'] = $user['member_id'];
-        $_SESSION['full_name'] = $user['full_name'];
-        $_SESSION['role']      = $user['role'];
+        $_SESSION['member_id']   = $user['member_id'];
+        $_SESSION['full_name']   = $user['full_name'];
+        $_SESSION['role']        = $user['role'];
+        $_SESSION['profile_pic'] = $user['profile_pic'] ?? null;
 
         return ['success' => true, 'message' => 'Welcome back!'];
     }
 
     return ['success' => false, 'message' => 'Invalid email or password.'];
 }
+
 // Step 1 of Recovery: Check if the email exists in D1 Member Store
 function verifyMemberEmail(PDO $pdo, string $email): ?array {
     $stmt = $pdo->prepare("SELECT member_id, full_name, email FROM members WHERE email = :email LIMIT 1");

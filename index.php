@@ -12,8 +12,16 @@ if (isset($_GET['action']) && $_GET['action'] === 'logout') {
 // Read search keyword from URL (?q=...)
 $searchQuery = trim($_GET['q'] ?? '');
 
-// Call Module 0.2.1 (Search Book across Title, Author, ISBN, Genre, Publisher, Index, Year)
+// Call Module 0.2.1
 $books = searchBooks($pdo, $searchQuery);
+
+// Fetch logged-in user's wishlist book IDs so we can highlight saved hearts
+$wishlistedIds = [];
+if (isset($_SESSION['member_id'])) {
+    $wStmt = $pdo->prepare("SELECT book_id FROM wishlist WHERE member_id = :mid");
+    $wStmt->execute([':mid' => (int)$_SESSION['member_id']]);
+    $wishlistedIds = array_map('intval', $wStmt->fetchAll(PDO::FETCH_COLUMN));
+}
 
 $staffRoles = ['Librarian', 'Cataloger'];
 $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
@@ -24,11 +32,19 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Reading Room | Library Management System</title>
-    <link rel="stylesheet" href="assets/style.css?v=2">
+    <link rel="stylesheet" href="assets/style.css?v=9">
+    <script>
+      // Apply saved theme before paint to prevent flash
+      (function() {
+        const savedTheme = localStorage.getItem('rr_theme') || 'default';
+        if (savedTheme !== 'default') {
+          document.documentElement.setAttribute('data-theme', savedTheme);
+        }
+      })();
+    </script>
 </head>
 <body>
 
-<!-- Top Navigation -->
 <nav class="navbar">
     <div class="brand">THE READING ROOM</div>
     <div>
@@ -41,7 +57,19 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
         <?php endif; ?>
 
         <?php if (isset($_SESSION['member_id'])): ?>
-            <span class="nav-user-greeting">Hello, <strong><?= htmlspecialchars($_SESSION['full_name']) ?></strong> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
+            <?php
+                $navInitial  = strtoupper(mb_substr($_SESSION['full_name'] ?? 'U', 0, 1));
+                $sessionPic  = $_SESSION['profile_pic'] ?? '';
+                $hasValidPic = $sessionPic !== '' && (str_starts_with($sessionPic, 'http://') || str_starts_with($sessionPic, 'https://') || file_exists(__DIR__ . '/' . $sessionPic));
+            ?>
+            <a href="profile.php" class="nav-profile-pill" title="View & Edit Profile">
+                <?php if ($hasValidPic): ?>
+                    <img src="<?= htmlspecialchars($sessionPic) ?>" alt="Profile" class="nav-avatar">
+                <?php else: ?>
+                    <span class="nav-avatar-fallback"><?= htmlspecialchars($navInitial) ?></span>
+                <?php endif; ?>
+                <span><?= htmlspecialchars($_SESSION['full_name']) ?> (<?= htmlspecialchars($_SESSION['role']) ?>)</span>
+            </a>
             <a href="index.php?action=logout">Logout</a>
         <?php else: ?>
             <a href="login.php">Log In</a>
@@ -50,7 +78,6 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     </div>
 </nav>
 
-<!-- Hero Search Section -->
 <section class="hero">
     <h1>Welcome to The Reading Room</h1>
     <p>Search millions of records, check shelf availability, and borrow books.</p>
@@ -68,7 +95,6 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
     </form>
 </section>
 
-<!-- Main Book Catalog Grid -->
 <main class="container">
     <h2 id="shelf-heading">
         <?= $searchQuery !== '' 
@@ -84,7 +110,6 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
         <div class="book-grid" id="book-grid">
             <?php foreach ($books as $book): ?>
                 <?php
-                    // Combine all searchable attributes into a lowercase data attribute for instant live filtering
                     $searchBlob = strtolower(
                         ($book['title'] ?? '') . ' ' .
                         ($book['author'] ?? '') . ' ' .
@@ -95,11 +120,21 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
                         ($book['publication_year'] ?? '')
                     );
 
-                    // Book is only available if copies remain AND a PDF is attached
                     $isBookAvailable = ($book['available_copies'] > 0 && !empty($book['pdf_path']));
+                    $inWishlist      = in_array((int)$book['book_id'], $wishlistedIds, true);
                 ?>
                 <div class="book-card" data-search="<?= htmlspecialchars($searchBlob) ?>">
-                    <div>
+                    <div style="position: relative;">
+                        <?php if (isset($_SESSION['member_id'])): ?>
+                            <form method="POST" action="wishlist_action.php" class="wishlist-heart-form">
+                                <input type="hidden" name="book_id" value="<?= (int)$book['book_id'] ?>">
+                                <input type="hidden" name="redirect" value="index.php">
+                                <button type="submit" class="wishlist-heart-btn <?= $inWishlist ? 'is-saved' : '' ?>" title="<?= $inWishlist ? 'Remove from Wishlist' : 'Add to Wishlist' ?>">
+                                    <?= $inWishlist ? '&#9829;' : '&#9825;' ?>
+                                </button>
+                            </form>
+                        <?php endif; ?>
+
                         <img class="book-cover" 
                              src="https://covers.openlibrary.org/b/isbn/<?= htmlspecialchars($book['isbn']) ?>-M.jpg" 
                              alt="Book Cover">
@@ -139,7 +174,6 @@ $isStaff = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, 
 </main>
 
 <script>
-  // Instant live filtering as the user types (in addition to server-side Search button submit)
   const searchInput = document.getElementById('catalog-search-input');
   const bookCards   = Array.from(document.querySelectorAll('.book-card'));
   const noMatchMsg  = document.getElementById('no-match-msg');
