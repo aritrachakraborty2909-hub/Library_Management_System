@@ -125,7 +125,7 @@ if (isset($_GET['borrowed'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Loans & Digital Shelf — The Reading Room</title>
-    <link rel="stylesheet" href="assets/style.css?v=9">
+    <link rel="stylesheet" href="assets/style.css?v=13">
     <script>
       (function() {
         const savedTheme = localStorage.getItem('rr_theme') || 'default';

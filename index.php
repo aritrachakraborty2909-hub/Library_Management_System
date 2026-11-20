@@ -15,8 +15,8 @@ $searchQuery = trim($_GET['q'] ?? '');
 // Call Module 0.2.1
 $books = searchBooks($pdo, $searchQuery);
 
-// Role & Borrowing Permissions
-$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
+// Role & Borrowing Permissions (driven directly by SQL role in session)
+$staffRoles = ['Cataloger', 'System Manager'];
 $isStaff    = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
 $canBorrow  = isset($_SESSION['member_id']) && !$isStaff;
 
@@ -111,8 +111,7 @@ ksort($genreStacks);
                 <?php else: ?>
                     <span class="nav-avatar-fallback"><?= htmlspecialchars($navInitial) ?></span>
                 <?php endif; ?>
-                <?php $displayRole = ($_SESSION['role'] === 'Librarian') ? 'Cataloger' : $_SESSION['role']; ?>
-                <span><?= htmlspecialchars($_SESSION['full_name']) ?> (<?= htmlspecialchars($displayRole) ?>)</span>
+                <span><?= htmlspecialchars($_SESSION['full_name']) ?> (<?= htmlspecialchars($_SESSION['role'] ?? 'Member') ?>)</span>
             </a>
             <a href="index.php?action=logout">Logout</a>
         <?php else: ?>

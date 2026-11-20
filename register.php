@@ -98,7 +98,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         <form class="account-form signup-form" method="POST" action="register.php">
           <p class="form-eyebrow">A NEW CHAPTER STARTS HERE</p>
-          <h2>Join the reading room.</h2>
+          <h2>Join the READING ROOM.</h2>
           <p class="form-intro">A few details, and you’re part of the story.</p>
 
           <?php if ($error): ?>
@@ -117,10 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <label class="field">
               <span>Phone number</span>
               <input type="tel" name="phone_number" placeholder="Enter phone number" />
-            </label>
-            <label class="field full-width">
-              <span>Address</span>
-              <textarea name="address" placeholder="House, street, city and postal code"></textarea>
             </label>
 
             <div class="field full-width">
