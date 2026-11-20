@@ -16,9 +16,12 @@ $searchQuery = trim($_GET['q'] ?? '');
 $books = searchBooks($pdo, $searchQuery);
 
 // Role & Borrowing Permissions (driven directly by SQL role in session)
-$staffRoles = ['Cataloger', 'System Manager'];
-$isStaff    = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
-$canBorrow  = isset($_SESSION['member_id']) && !$isStaff;
+$workbenchRoles     = ['Cataloger', 'System Manager'];
+$staffRoles         = ['Librarian', 'Cataloger', 'System Manager'];
+$canAccessWorkbench = isset($_SESSION['role']) && in_array($_SESSION['role'], $workbenchRoles, true);
+$isStaff            = isset($_SESSION['role']) && in_array($_SESSION['role'], $staffRoles, true);
+$isLibrarian        = isset($_SESSION['role']) && $_SESSION['role'] === 'Librarian';
+$canBorrow          = isset($_SESSION['member_id']) && !$isStaff;
 
 // Fetch logged-in regular member's wishlist book IDs & active borrowed book IDs
 $wishlistedIds     = [];
@@ -95,7 +98,7 @@ ksort($genreStacks);
         <?php if ($canBorrow): ?>
             <a href="my_loans.php">My Loans</a>
         <?php endif; ?>
-        <?php if ($isStaff): ?>
+        <?php if ($canAccessWorkbench): ?>
             <a href="admin_dashboard.php" class="nav-staff-link">Staff Dashboard</a>
         <?php endif; ?>
 
@@ -269,7 +272,13 @@ ksort($genreStacks);
                                 <?php endif; ?>
                             </div>
 
-                            <?php if ($canBorrow): ?>
+                            <?php if ($isLibrarian): ?>
+                                <?php if (!empty($book['pdf_path'])): ?>
+                                    <div class="borrow-form">
+                                        <a href="read_book.php?book_id=<?= $bookId ?>" class="btn btn-full-width">Read Book</a>
+                                    </div>
+                                <?php endif; ?>
+                            <?php elseif ($canBorrow): ?>
                                 <?php if ($isBorrowedByUser): ?>
                                     <div class="borrow-form">
                                         <button type="button" class="btn btn-full-width btn-borrowed" disabled>Borrowed</button>

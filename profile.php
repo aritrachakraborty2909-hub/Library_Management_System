@@ -142,8 +142,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
-$isStaff    = in_array($member['role'] ?? '', $staffRoles, true);
+$workbenchRoles     = ['Cataloger', 'System Manager'];
+$staffRoles         = ['Librarian', 'Cataloger', 'System Manager'];
+
+$canAccessWorkbench = in_array($member['role'] ?? '', $workbenchRoles, true);
+$isStaff            = in_array($member['role'] ?? '', $staffRoles, true);
 
 // 4 & 5. Fetch Loans & Wishlist only for regular Members
 $borrowedBooks = [];
@@ -182,7 +185,7 @@ if (!$isStaff) {
 }
 
 $initial     = strtoupper(mb_substr($member['full_name'], 0, 1));
-$displayRole = ($member['role'] === 'Librarian') ? 'Cataloger' : $member['role'];
+$displayRole = $member['role'];
 $maxLimit    = (int) ($member['max_borrowing_limit'] ?? 5);
 $slotsLeft   = max(0, $maxLimit - count($borrowedBooks));
 $hasValidPic = isValidProfilePic($member['profile_pic']);
@@ -213,7 +216,7 @@ $hasValidPic = isValidProfilePic($member['profile_pic']);
         <?php if (!$isStaff): ?>
             <a href="my_loans.php">My Loans</a>
         <?php endif; ?>
-        <?php if ($isStaff): ?>
+        <?php if ($canAccessWorkbench): ?>
             <a href="admin_dashboard.php" class="nav-staff-link">Staff Dashboard</a>
         <?php endif; ?>
         <a href="profile.php" class="nav-profile-pill" title="Edit Profile">

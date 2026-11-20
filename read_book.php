@@ -1,6 +1,5 @@
 <?php
 // read_book.php
-session_start();
 require_once __DIR__ . '/config/db.php';
 
 if (!isset($_SESSION['member_id'])) {
@@ -13,7 +12,7 @@ $role     = $_SESSION['role'] ?? 'Member';
 $bookId   = isset($_GET['book_id']) ? (int) $_GET['book_id'] : 0;
 
 if ($bookId <= 0) {
-    header('Location: my_loans.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -21,7 +20,7 @@ if ($bookId <= 0) {
 $stmt = $pdo->prepare("
     SELECT book_id, book_index, title, author, genre_category, pdf_path 
     FROM books 
-    WHERE book_id = :book_id
+    WHERE book_id = :book_id AND is_deleted = FALSE
     LIMIT 1
 ");
 $stmt->execute([':book_id' => $bookId]);
@@ -31,12 +30,19 @@ if (!$book || empty($book['pdf_path'])) {
     die("Digital edition not available for this book.");
 }
 
-// Verify access rights to display appropriate status banner
-$staffRoles = ['Librarian', 'Cataloger', 'System Manager'];
-$isStaff    = in_array($role, $staffRoles, true);
-$loanInfo   = null;
+// Role-based access verification:
+// - Librarian: direct read access from the catalog
+// - Member: requires an active Issued loan
+// - Cataloger / System Manager: blocked from reading books
+$isLibrarian = ($role === 'Librarian');
+$loanInfo    = null;
 
-if (!$isStaff) {
+if (!$isLibrarian) {
+    if ($role !== 'Member') {
+        header('Location: index.php');
+        exit;
+    }
+
     $loanStmt = $pdo->prepare("
         SELECT borrowing_id, issue_date, due_date 
         FROM borrowings 
@@ -58,7 +64,7 @@ if (!$isStaff) {
     }
 }
 
-$backUrl   = $isStaff ? 'admin_dashboard.php' : 'my_loans.php';
+$backUrl   = $isLibrarian ? 'index.php' : 'my_loans.php';
 $streamUrl = 'stream_pdf.php?book_id=' . urlencode((string) $book['book_id']);
 ?>
 <!DOCTYPE html>
@@ -67,7 +73,7 @@ $streamUrl = 'stream_pdf.php?book_id=' . urlencode((string) $book['book_id']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reading: <?= htmlspecialchars($book['title']) ?> — The Reading Room</title>
-    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/style.css?v=13">
 </head>
 <body class="reader-body">
 
@@ -85,8 +91,8 @@ $streamUrl = 'stream_pdf.php?book_id=' . urlencode((string) $book['book_id']);
         </div>
 
         <div class="reader-right">
-            <?php if ($isStaff): ?>
-                <span class="loan-badge">Staff Preview Mode</span>
+            <?php if ($isLibrarian): ?>
+                <span class="loan-badge">Librarian Access</span>
             <?php elseif ($loanInfo): ?>
                 <span class="loan-badge">
                     Due: <?= htmlspecialchars(date('M d, Y', strtotime($loanInfo['due_date']))) ?>
