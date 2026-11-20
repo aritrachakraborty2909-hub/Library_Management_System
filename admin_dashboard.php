@@ -92,7 +92,7 @@ foreach (array_keys(CatalogueService::GENRE_PREFIXES) as $genreName) {
         <div class="nav-links">
             <a href="index.php">Public Catalog</a>
             <a href="admin_dashboard.php" class="active">Workbench (<?= htmlspecialchars($role === 'Librarian' ? 'Cataloger' : $role) ?>)</a>
-            <a href="index.php?action=logout">Logout</a>
+            <a href="index.php?action=logout">Back to Dashboard</a>
         </div>
     </nav>
 
