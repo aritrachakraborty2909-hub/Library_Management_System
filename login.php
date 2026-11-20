@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Member Access — The Reading Room</title>
-  <link rel="stylesheet" href="assets/style.css?v=9">
+  <link rel="stylesheet" href="assets/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
       <div class="member-link">
         <span>Need a hand?</span>
-        <a href="mailto:support@thereadingroom.local">Contact the library.</a>
+        <a href="mailto:arnak1331@gmail.com">Contact the library.</a>
       </div>
     </main>
   </div>
