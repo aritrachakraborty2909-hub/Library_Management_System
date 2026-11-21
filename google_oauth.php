@@ -24,7 +24,7 @@ if (file_exists($envPath)) {
 
 $clientId     = $_ENV['GOOGLE_CLIENT_ID']     ?? getenv('GOOGLE_CLIENT_ID')     ?: '';
 $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? getenv('GOOGLE_CLIENT_SECRET') ?: '';
-$redirectUri  = $_ENV['GOOGLE_REDIRECT_URI']  ?? getenv('GOOGLE_REDIRECT_URI')  ?: 'http://localhost/Library_Management_System/lrminsul/google_oauth.php';
+$redirectUri  = $_ENV['GOOGLE_REDIRECT_URI']  ?? getenv('GOOGLE_REDIRECT_URI')  ?: 'https://the-reading-room-6hsg.onrender.com/google_oauth.php';
 
 // Helper function for clean redirects back to login.php with an error message
 function failGoogleAuth(string $message): void
